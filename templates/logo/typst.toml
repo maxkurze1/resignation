@@ -1,0 +1,9 @@
+[package]
+# required
+name = "resignation-logo"
+version = "1.0.0"
+entrypoint = "stamp.typ"
+# optional
+authors = ["Max Kurze"]
+license = "MIT"
+description = "re[sign]ation stamp with a logo"

@@ -8,12 +8,14 @@
   place(top + left, move(dx: -om/2, dy: -om/2, block(width: size.width + om, height: size.height + om, fill: color)))
 })
 
-#let stamp(height: 0, width: 0, cert_cn: "", info: "", ..args) = grid(
+#set image(height: 100%)
+
+#let stamp(height: 0, width: 0, cert_name: "", info: "", logo: [], ..args) = grid(
   columns: (1fr, 1fr),
   rows: (1fr),
   gutter: 3pt,
-  align: (left + horizon, left + horizon),
-  fit-to-width(max-text-size: height - 4pt, text(weight:"bold", cert_cn)),
-  place(center + horizon, overlay(image("BI-logo.svg", height:100%), white.transparentize(30%))) +
+  align: (center + horizon, left + horizon),
+  fit-to-width(max-text-size: height - 4pt, text(weight:"bold", cert_name)),
+  place(center + horizon, overlay(logo, white.transparentize(30%))) +
   fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))
 )

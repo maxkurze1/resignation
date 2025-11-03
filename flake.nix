@@ -34,7 +34,7 @@
       };
       packages.default = with pkgs; python313Packages.buildPythonApplication {
         pname = "resignation";
-        version = "1.0.0";
+        version = "0.1";
 
         src = ./.;
 

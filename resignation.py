@@ -45,36 +45,39 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
 
+def get_opt(lst, index, default=None):
+  return lst[index].value if -len(lst) <= index < len(lst) else ""
+
 def extract_name_from_pk12(pk12_path, password: str | None = None) -> str | None:
-    """
-    Extracts the Common Name (CN) from a PKCS#12 (.p12/.pfx) certificate.
+  """
+  Extract subject information from a PKCS#12 (.p12/.pfx) certificate.
+  """
+  # Read PKCS#12 file
+  with open(pk12_path, "rb") as f:
+    pk12_data = f.read()
 
-    :param pk12_path: Path to the PKCS#12 file
-    :param password: Password for the PKCS#12 file (string or None)
-    :return: Common Name (CN) as a string, or None if not found
-    """
-    # Read PKCS#12 file
-    with open(pk12_path, "rb") as f:
-        pk12_data = f.read()
+  # Load private key and certificate
+  private_key, certificate, additional_certs = pkcs12.load_key_and_certificates(
+    pk12_data,
+    password if password else None,
+    backend=default_backend()
+  )
 
-    # Load private key and certificate
-    private_key, certificate, additional_certs = pkcs12.load_key_and_certificates(
-        pk12_data,
-        password if password else None,
-        backend=default_backend()
-    )
+  if not certificate:
+    print("No certificate found in the PKCS#12 file.")
+    return None
 
-    if not certificate:
-        print("No certificate found in the PKCS#12 file.")
-        return None
-
-    # Extract CN
-    try:
-        cn = certificate.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-        return cn
-    except IndexError:
-        print("No Common Name (CN) found in certificate subject.")
-        return None
+  return {
+    "cert_name":       f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.COMMON_NAME      ),0)}]",
+    "cert_country":    f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.COUNTRY_NAME     ),0)}]",
+    "cert_org":        f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME),0)}]",
+    "cert_surname":    f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.SURNAME          ),0)}]",
+    "cert_given_name": f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.GIVEN_NAME       ),0)}]",
+    "cert_title":      f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.TITLE            ),0)}]",
+    "cert_initials":   f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.INITIALS         ),0)}]",
+    "cert_pseudonym":  f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.PSEUDONYM        ),0)}]",
+    "cert_email":      f"[{get_opt(certificate.subject.get_attributes_for_oid(NameOID.EMAIL_ADDRESS    ),0)}]",
+  }
 
 from pyhanko import stamp
 from pyhanko.sign import fields, signers
@@ -132,8 +135,9 @@ def generate_signature_pdf(template, template_params) :
   # Print the output (optional)
   stderr = process.stderr.decode()
   if stderr:
-    print("⚠️ Typst produced the following error:")
-    print(stderr)
+    print("Typst produced the following error:", file=sys.stderr)
+    print(stderr, file=sys.stderr)
+    exit(1)
 
   # typst pdf as binary stream
   with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
@@ -150,27 +154,63 @@ def resolve_path(config_dir: Path, path_str: str) -> Path:
     path = config_dir / path
   return path.resolve()
 
+import json
+from urllib.parse import urlparse, parse_qs
+
+def fetch_url(url : str, relative = ".") -> Path:
+  # BIG TODO
+  url_info = urlparse(url)
+  if not url_info.scheme:
+    # url is local path -> use it directly
+    return resolve_path(relative, url) / "template.typ"
+  else:
+    process = subprocess.run(
+      ["nix", "flake", "prefetch", url, "--json"],
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE
+    )
+    # fetch a nix flake-url into the nix store and return its local path
+    prefetch_info = json.loads(process.stdout.decode())
+    return Path(prefetch_info['storePath']) / prefetch_info["locked"].get("dir", "") / "template.typ"
+
+  # url_dir = urlparse('github:maxkurze1/resignation?dir=templates/logo-template')
+  # parse_qs(url_dir.query)['dir'][0] -> 'templates/logo-template'
 
 
 
 
 
-
-
-
-
+# TODO from importlib.metadata import version
 import argparse
 import os
+import sys
 import tomllib  # built-in since Python 3.11
 
 def main():
-  parser = argparse.ArgumentParser(description="digital signature creator")
-
+  parser = argparse.ArgumentParser(prog='resignation', description="digital signature creator")
   parser.add_argument("-i", "--input", help="input PDF file path")
   parser.add_argument("-o", "--output", help="output PDF file path")
-  parser.add_argument("-s", "--signature", help="path to signature config [':' sig_name]", required=True)
+  parser.add_argument("--password", help="password of certificate")
+  parser.add_argument("--certificate", help="path to certificate")
+  parser.add_argument("-t", "--template", help="nix-url of stamp-template")
+  parser.add_argument("-c", "--config", help="path to config [':'<signature_name>]")
+  parser.add_argument("-p", "--param", action='append', help="template parameter", nargs='*')
+  # TODO parser.add_argument('--version', action='version', version=f"%(prog)s {version("resignation")}", help="Show version and Git commit hash")
   args = parser.parse_args()
 
+  # validate passed params
+  cli_template_params = {}
+  if args.param:
+    for p in [x for l in args.param for x in l]:
+      if "=" in p:
+        key, value = p.split("=", 1)
+        # print("k/v", key, value)
+        cli_template_params[key] = value
+      else:
+        print(f"Error: invalid input ({p}) - params need to be key value pairs given in the form '<key>=<value>'.", file=sys.stderr)
+        sys.exit(1)
+
+  # check / prompt for input path
   if args.input is not None:
     file_in = args.input
   else:
@@ -179,7 +219,7 @@ def main():
       validate=PathValidator(is_file=True, message="Input is not a file"),
     ).execute()
 
-
+  # process PDF for signature fields
   doc = fitz.open(file_in)
   page_choices = []
   for i, page in enumerate(doc):
@@ -190,71 +230,112 @@ def main():
       ),
     )
 
-  prompt = inquirer.select(
-    message="On which page do you want to sign? (press 'p' to preview page)\n  (empty fields / total fields):",
-    choices=page_choices,
-    default=None,
-    vi_mode=True,
-  )
+  # loop to select page / signature field on page
+  while True:
+    prompt = inquirer.select(
+      message="On which page do you want to sign? (press 'p' to preview page)\n  (empty fields / total fields):",
+      choices=page_choices,
+      default=None,
+      vi_mode=True,
+    )
 
-  @prompt.register_kb("p")
-  def _handle_preview(event):
-    choice_name = prompt.result_name
-    choice_value= prompt.result_value
-    show_annotated_page(doc, choice_value)
+    @prompt.register_kb("p")
+    def _handle_preview(event):
+      show_annotated_page(doc, prompt.result_value)
 
-  page_idx = prompt.execute()
-  min_idx = 0
-  for i in range(page_idx):
-    min_idx += len(get_empty_page_sig_fields(doc[i]))
-  max_idx = min_idx + len(get_empty_page_sig_fields(doc[page_idx])) - 1
+    page_idx = prompt.execute()
+    min_idx = 0
+    for i in range(page_idx):
+      min_idx += len(get_empty_page_sig_fields(doc[i]))
+    max_idx = min_idx + len(get_empty_page_sig_fields(doc[page_idx])) - 1
 
-  prompt = inquirer.number(
-    message=f"Select which field to sign [{min_idx} - {max_idx}] (press 'p' to preview page):",
-    min_allowed=min_idx,
-    max_allowed=max_idx,
-    validate=EmptyInputValidator(),
-    vi_mode=True,
-  )
+    prompt = inquirer.number(
+      message=f"Select which field to sign [{min_idx} - {max_idx}] (press 'p' to preview page):",
+      min_allowed=min_idx,
+      max_allowed=max_idx,
+      validate=EmptyInputValidator(),
+      vi_mode=True,
+    )
 
-  @prompt.register_kb("p")
-  def _handle_preview(event):
-    show_annotated_page(doc, page_idx)
+    @prompt.register_kb("p")
+    def _handle_preview(event):
+      show_annotated_page(doc, page_idx)
 
-  field_idx = int(prompt.execute())
+    @prompt.register_kb("escape")
+    def _handle_exit(event):
+      prompt.application.exit()
+
+    field_idx_opt = prompt.execute()
+    if field_idx_opt:
+      field_idx = int(field_idx_opt)
+      break
+
+  # page and idx was selected
   page, field = page_field_of_idx(doc, field_idx)
   field_name = field.field_name
 
-  sig_conf = str(args.signature).split(':')
-  sig_conf_dir = Path(sig_conf[0]).resolve().parent
+  # next: collect certificate path + password + signature template
+  cert_path = None
+  password = None
+  template_path = None
+  config_params = {}
 
-  with open(Path(sig_conf[0]).expanduser(), "rb") as f: # must open in binary mode
-    data = tomllib.load(f)
+  # load all values from config if available
+  if args.config:
+    sig_conf = str(args.config).split(':')
+    sig_conf_dir = Path(sig_conf[0]).resolve().parent
 
-  if len(sig_conf) > 1:
-    sig_conf_d = data[sig_conf[1]]
-    # print("selected signature:", sig_conf_d)
-  else:
-    # try to load the first signature in config
-    key = next(iter(data), None)
-    if key:
-      sig_conf_d = data[key]
-      # print("first signature:", sig_conf_d)
+    with open(Path(sig_conf[0]).expanduser(), "rb") as f: # must open in binary mode
+      data = tomllib.load(f)
+
+    sig_conf_d = None
+    if len(sig_conf) > 1:
+      sig_conf_d = data[sig_conf[1]]
     else:
-      print("Signature config file does not contain entries")
+      # try to load the first signature in config
+      # TODO maybe consider opening a dialog here that lets the user choose one
+      key = next(iter(data), None)
+      if key:
+        sig_conf_d = data[key]
+      else:
+        print(f"Warning: Signature config file does not contain entries.", file=sys.stderr)
 
-  cert_file = resolve_path(sig_conf_dir, sig_conf_d['certificate'])
-  cert_typst = resolve_path(sig_conf_dir, sig_conf_d['typst'])
-  if 'password' in sig_conf_d:
-    cert_pass = sig_conf_d['password'].encode()
-  else:
-    # prompt password
-    cert_pass = inquirer.secret(
-      message=f"Enter password (for {cert_file}):",
+    if sig_conf_d:
+      cert_path = resolve_path(sig_conf_dir, sig_conf_d['certificate']) if 'certificate' in sig_conf_d else None
+      password = sig_conf_d['password'].encode() if 'password' in sig_conf_d else None
+      template_path = resolve_path(sig_conf_dir, sig_conf_d['template']) if 'template' in sig_conf_d else None # todo support nix-paths also in the config
+      config_params = sig_conf_d['param'] if 'param' in sig_conf_d else {}
+
+  # if value are given on the command line they take precedence
+  if args.template:
+    # if different template is given on the command line ignore template + params of config
+    template_path = fetch_url(args.template)
+    config_params = {}
+  if args.password:
+    password = args.password.encode()
+  if args.certificate:
+    cert_path = Path(certificate).resolve()
+
+  # if some values are still missing -> prompt user
+  if not cert_path:
+    cert_path = Path(inquirer.filepath(
+      message="Select Certificate file:",
+      validate=PathValidator(is_file=True, message="Input is not a file"),
+    ).execute()).expanduser().resolve()
+
+  # prompt password
+  if not password:
+    password = inquirer.secret(
+      message=f"Enter password (for {cert_path}):",
       transformer=lambda _: "[hidden]",
     ).execute().encode()
 
-  common_name = extract_name_from_pk12(cert_file, cert_pass)
+  if not template_path:
+    # if config does not contain template then also ignore params of config
+    config_params = {}
+    template_path = fetch_url(inquirer.text(message="Enter signature template url:").execute())
+
+  cert_data = extract_name_from_pk12(cert_path, password)
   date = get_formatted_date()
 
   # TODO if rotation is set in template it is not clear if the box dimensions should be rotatet too or only the content?
@@ -269,9 +350,10 @@ def main():
     "rotation": f"{360 - page.rotation}deg",
     "width": f"{field_wdt}pt",
     "height": f"{field_hgt}pt",
-    "cert_cn": f"[{common_name}]",
-    "info": f"[Digitally signed by {common_name}\\ Date: {date}]",
-    **sig_conf_d.get('template', {}),
+    "info": f"[Digitally signed by #{cert_data['cert_name']}\\ Date: {date}]",
+    **cert_data,
+    **config_params,
+    **cli_template_params
   }
 
   with open(file_in, 'rb') as file:
@@ -282,14 +364,14 @@ def main():
     #     )
     # )
     signer = signers.SimpleSigner.load_pkcs12(
-        pfx_file=cert_file, passphrase=cert_pass
+      pfx_file=cert_path, passphrase=password
     )
 
     meta = signers.PdfSignatureMetadata(field_name=field_name)
     pdf_signer = signers.PdfSigner(
       meta, signer=signer,
       stamp_style=stamp.StaticStampStyle.from_pdf_file(
-        generate_signature_pdf(cert_typst, template_data),
+        generate_signature_pdf(template_path, template_data),
         border_width=0,
         background_layout= layout.SimpleBoxLayoutRule(
           x_align=layout.AxisAlignment.ALIGN_MID,
