@@ -1,4 +1,5 @@
-#import "../stamp.typ": stamp
+// #import "../stamp.typ": stamp
+#import "@resignation/logo:1.0.0": stamp
 
 #set page(width: auto, height: auto, margin: 1cm)
 
