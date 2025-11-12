@@ -1,6 +1,9 @@
-.PHONY: build preview clean
+.PHONY: build watch preview clean
 build:
 	typst compile test.typ --root ..
+
+watch:
+	typst watch test.typ --root ..
 
 preview:
 	typst compile -f png --pages 1 --ppi 250 --root .. test.typ test.png

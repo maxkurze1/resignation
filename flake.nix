@@ -14,16 +14,16 @@
     pkgs = import nixpkgs {
       inherit system;
     };
+    pyPkgs = pkgs.python313Packages;
     deps = with pkgs;( [
       typst
       python313
-    ] ++ (with python313Packages; [
+    ] ++ (with pyPkgs; [
       pyhanko
       pymupdf
       pillow
       inquirerpy
-
-      tkinter
+      pyqt6
     ]));
     in rec {
       devShells.default = with pkgs; mkShellNoCC {
@@ -32,12 +32,22 @@
         TYPST_FONT_PATHS = "${open-sans}";
         TYPST_IGNORE_SYSTEM_FONTS = "true";
       };
-      packages.default = with pkgs; python313Packages.buildPythonApplication {
+      packages.default = with pkgs; pyPkgs.buildPythonApplication {
         pname = "resignation";
-        version = "0.1";
+        version = "1.0";
+        pyproject = true;
 
-        src = ./.;
+        src = lib.cleanSourceWith {
+          src = ./.;
+          filter = path: type:
+            let rel = lib.removePrefix (toString ./. + "/") (toString path);
+            in rel == "pyproject.toml" || lib.hasPrefix "resignation" rel;
+        };
 
+        build-system = with pyPkgs; [
+          setuptools
+          setuptools-scm
+        ];
         dependencies = deps;
 
         preFixup = ''
@@ -48,7 +58,7 @@
 
       apps.default = {
         type = "app";
-        program = "${packages.default}/bin/resignation.py";
+        program = "${packages.default}/bin/resignation";
       };
   });
 }

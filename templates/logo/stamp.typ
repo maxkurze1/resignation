@@ -10,12 +10,40 @@
 
 #set image(height: 100%)
 
-#let stamp(height: 0, width: 0, cert_name: "", info: "", logo: [], ..args) = grid(
-  columns: (1fr, 1fr),
-  rows: (1fr),
-  gutter: 3pt,
-  align: (center + horizon, left + horizon),
-  fit-to-width(max-text-size: height - 4pt, text(weight:"bold", cert_name)),
-  place(center + horizon, overlay(logo, white.transparentize(30%))) +
-  fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))
-)
+#let stamp(
+    /* required */
+    height: 0pt,
+    width: 0pt,
+    rotation: 0deg,
+    /* optional */
+    cert_name: [],
+    date: [],
+    logo: [],
+    inset: 2pt,
+    stroke: none,
+    ..args) = {
+  let args = args.named();
+  // typst does not support arguments with default values that depend on other args
+  // (i.e. its not possible to write 'name: [#cert_name]' in the arg list)
+  // but we can emulate them:
+  let name = args.at("name", default: cert_name);
+  let info = args.at("info", default: [Digitally signed by #name\ Date: #date]);
+  rotate(rotation,
+    box(
+      inset: inset,
+      height: height,
+      width: width,
+      stroke: stroke,
+      grid(
+        columns: (1fr, 1fr),
+        rows: (1fr),
+        gutter: 3pt,
+        align: (center + horizon, left + horizon),
+        fit-to-width(max-text-size: height - 4pt, text(weight:"bold", name)),
+        /* the logo is centered behind the info text */
+        place(center + horizon, overlay(logo, white.transparentize(30%))) +
+        fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))
+      )
+    ),
+    reflow: true
+)}

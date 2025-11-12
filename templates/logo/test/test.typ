@@ -1,5 +1,5 @@
-// #import "../stamp.typ": stamp
-#import "@resignation/logo:1.0.0": stamp
+#import "../stamp.typ": stamp
+// #import "@resignation/resignation-logo:1.0.0": stamp
 
 #set page(width: auto, height: auto, margin: 1cm)
 
@@ -9,17 +9,13 @@
     (300pt, 20pt),
     ( 60pt, 20pt)
   ) [
-  #rotate(0deg, box(
+  #stamp(
     inset: 1pt,
-    height: h,
-    width: w,
     stroke: (paint: gray, thickness: 0.5pt, dash: "dashed"),
-    stamp(
-      width: w,
-      height: h,
-      logo: image("logo.svg"),
-      cert_name: [Test Name],
-      info: [Digitally signed by Test Name\ Date: 02.11.2025 16:56:02 +0100]
-    )
-  ), reflow: true)
+    width: w,
+    height: h,
+    logo: image("logo.svg"),
+    cert_name: [Test Name],
+    date: [02.11.2025 16:56:02 +0100],
+  )
 ]

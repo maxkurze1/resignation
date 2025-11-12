@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+[tool.setuptools]
+packages = ["resignation"]
+
+[project]
+name = "resignation"
+version = "0.0.1"
+requires-python = ">= 3.13"
+description = "re[sign]ation: A script to create digital signatures"
+authors = [
+  {name = "Max Kurze", email = "Max.Kurze@barkhauseninstitut.org"},
+]
+maintainers = [
+  {name = "Max Kurze", email = "Max.Kurze@barkhauseninstitut.org"}
+]
+# license = { text = "MIT" } TODO
+
+# dependencies = [
+#   "requests",
+#   'importlib-metadata; python_version<"3.10"',
+# ]
+[project.urls]
+Repository = "https://github.com/maxkurze1/resignation"
+
+[project.scripts]
+resignation = "resignation.resignation:main"
