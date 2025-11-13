@@ -6,6 +6,10 @@ For that it is based on a couple of existing tools including:
 - [pyhanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
 - [typst](https://typst.app/) for the creation of the visual part of the signature
 
+# Documentation
+
+The documentation of this tool can be found [here](https://maxkurze1.github.io/resignation/)
+
 # Why
 
 Most existing tools (at least the dozen I tried) were lacking in one or the other regard. Either
@@ -23,7 +27,7 @@ To use `resignation` you have multiple options.
 For use with nix, `resignation` provides a flake that can be used directly like this:
 
 ```
-nix run github:maxkurze1/resignation -- --input document.pdf --output document-signed.pdf --signature path/to/config.toml
+nix run github:maxkurze1/resignation -- --input pdfs/mag.pdf --output pdfs/before-svg.pdf --config example/config.toml
 ```
 
 
