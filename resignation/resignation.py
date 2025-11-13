@@ -300,15 +300,19 @@ def _main():
   config_params = {}
 
   # load all values from config if available
+  sig_conf = [Path(os.getenv("XDG_CACHE_HOME", "~/.config")).expanduser() / "resignation" / "config.toml"]
+  sig_conf_dir = sig_conf[0].resolve().parent
   if args.config:
     sig_conf = str(args.config).split(':')
     sig_conf_dir = Path(sig_conf[0]).resolve().parent
 
+  if Path(sig_conf[0]).expanduser().exists():
     with open(Path(sig_conf[0]).expanduser(), "rb") as f: # must open in binary mode
       data = tomllib.load(f)
 
     sig_conf_d = None
     if len(sig_conf) > 1:
+      # TODO check for key error
       sig_conf_d = data[sig_conf[1]]
     else:
       # try to load the first signature in config
