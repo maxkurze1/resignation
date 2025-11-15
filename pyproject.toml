@@ -16,6 +16,13 @@ maintainers = [
   {name = "Max Kurze", email = "Max.Kurze@barkhauseninstitut.org"}
 ]
 # license = { text = "MIT" } TODO
+dependencies = [
+  "pyhanko>=0.25.3",
+  "pymupdf>=1.25.2",
+  "pillow>=11.2.1",
+  "inquirerpy>=0.3.4",
+  "pyqt6>=6.9.0",
+]
 
 # dependencies = [
 #   "requests",
