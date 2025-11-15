@@ -55,5 +55,20 @@ For additional information about the available command line options please refer
 
 ## PyPI
 
-TODO: work in progress
+To install the script via pip execute the following command:
+(Use a venv if you don't want to install it globally)
+
+```
+pip install git+https://github.com/maxkurze1/resignation
+```
+
+Afterward, you should be able to use the `resignation` command
+on its own:
+
+```
+resignation \
+  --input document.pdf \
+  --output document-signed.pdf \
+  --template "github:maxkurze1/resignation?dir=templates/logo"
+```
 

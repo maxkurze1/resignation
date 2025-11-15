@@ -22,15 +22,32 @@ Additionally, most of them have been rather inconvenient to use.
 
 To use `resignation` you have multiple options.
 
-## Nix
+## Nix Flakes
 
-For use with nix, `resignation` provides a flake that can be used directly like this:
+For use with nix, `resignation` provides a flake that can be run directly through nix:
 
 ```
-nix run github:maxkurze1/resignation -- --input pdfs/mag.pdf --output pdfs/before-svg.pdf --config example/config.toml
+nix run github:maxkurze1/resignation -- \
+  --input document.pdf \
+  --output document-signed.pdf \
+  --template "github:maxkurze1/resignation?dir=templates/logo"
 ```
-
 
 ## PyPI
 
-TODO: work in progress
+To install the script via pip execute the following command:
+(Use a venv if you don't want to install it globally)
+
+```
+pip install git+https://github.com/maxkurze1/resignation
+```
+
+Afterward, you should be able to use the `resignation` command
+on its own:
+
+```
+resignation \
+  --input document.pdf \
+  --output document-signed.pdf \
+  --template "github:maxkurze1/resignation?dir=templates/logo"
+```
