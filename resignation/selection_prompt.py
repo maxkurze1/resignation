@@ -6,18 +6,18 @@ import os.path
 try:
     from PyQt6.QtCore import Qt, QRectF, QPoint, QPointF, pyqtSignal, QEvent, QSize
     from PyQt6.QtGui import QImage, QPixmap, QPainterPath, QMouseEvent, QPainter, QPen, QBrush, QColor, QKeyEvent
-    from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QFileDialog, QSizePolicy, QGraphicsItem, QGraphicsRectItem
+    from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QFileDialog, QSizePolicy, QGraphicsItem, QGraphicsRectItem, QPushButton, QGraphicsProxyWidget
 except ImportError:
     try:
         from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF, pyqtSignal, QEvent, QSize
         from PyQt5.QtGui import QImage, QPixmap, QPainterPath, QMouseEvent, QPainter, QPen, QBrush, QColor, QKeyEvent
-        from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QFileDialog, QSizePolicy, QGraphicsItem, QGraphicsRectItem
+        from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QFileDialog, QSizePolicy, QGraphicsItem, QGraphicsRectItem, QPushButton, QGraphicsProxyWidget
     except ImportError:
         raise ImportError("Requires PyQt (version 5 or 6)")
 
 
 class QtImageViewer(QGraphicsView):
-    def __init__(self, img, parent=None):
+    def __init__(self, img, enable_select=False, parent=None):
         QGraphicsView.__init__(self, parent)
 
         # Image is displayed as a QPixmap in a QGraphicsScene attached to this QGraphicsView.
@@ -49,8 +49,13 @@ class QtImageViewer(QGraphicsView):
         self._image = self.scene.addPixmap(img)
         self.setSceneRect(QRectF(img.rect()))  # Set scene size to image size.
 
-        self._selection_rect = ResizableRectItem(0,0,0,0)
-        self.scene.addItem(self._selection_rect)
+        # selected predefined field
+        self.selected_field = None
+        # free form select
+        self.enable_select = enable_select
+        if enable_select:
+            self._selection_rect = ResizableRectItem(0,0,0,0)
+            self.scene.addItem(self._selection_rect)
         self.selection_rect = None
         self.fitInView(self.sceneRect(), self.aspectRatioMode)
         self.scale(2.0,2.0)
@@ -61,7 +66,7 @@ class QtImageViewer(QGraphicsView):
             return
 
         # Start dragging a region zoom box?
-        if (self.regionSelectionButton is not None) and (event.button() == self.regionSelectionButton):
+        if self.enable_select and (self.regionSelectionButton is not None) and (event.button() == self.regionSelectionButton):
             self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
             super().mousePressEvent(event)
             event.accept()
@@ -86,7 +91,7 @@ class QtImageViewer(QGraphicsView):
             return
 
         # Finish dragging a region zoom box?
-        if (self.regionSelectionButton is not None) and (event.button() == self.regionSelectionButton):
+        if self.enable_select and (self.regionSelectionButton is not None) and (event.button() == self.regionSelectionButton):
             # QGraphicsView.mouseReleaseEvent(self, event)
             rect = self.scene.selectionArea().boundingRect().intersected(self.sceneRect())
             # todo if selection too small (single click) -> take minimum size
@@ -100,7 +105,10 @@ class QtImageViewer(QGraphicsView):
         if (self.panButton is not None) and (event.button() == self.panButton):
             if not self.panButton == Qt.MouseButton.LeftButton:
                 # ScrollHandDrag ONLY works with LeftButton, so fake it.
-                self.setCursor(Qt.CursorShape.CrossCursor)
+                if self.enable_select:
+                    self.setCursor(Qt.CursorShape.CrossCursor)
+                else:
+                    self.setCursor(Qt.CursorShape.ArrowCursor)
                 dummyEvent = QMouseEvent(QEvent.Type.MouseButtonRelease, QPointF(event.pos()), Qt.MouseButton.LeftButton, event.buttons(), event.modifiers())
                 super().mouseReleaseEvent(dummyEvent)
             self.setDragMode(QGraphicsView.DragMode.NoDrag)
@@ -126,25 +134,61 @@ class QtImageViewer(QGraphicsView):
             return
 
     def enterEvent(self, event):
-        self.setCursor(Qt.CursorShape.CrossCursor)
+        if self.enable_select:
+            self.setCursor(Qt.CursorShape.CrossCursor)
+        else:
+            self.setCursor(Qt.CursorShape.ArrowCursor)
 
-    def addRect(self, x, y, width, height):
-        self._selection_rect = ResizableRectItem(x, y, width, height)
-        self.scene.addItem(self._selection_rect)
+    def addRect(self, name, x, y, width, height):
+        rect = ClickableRectItem(name, x, y, width, height, onclick=self.selectField)
+        # self.scene.addItem(rect)
+        btn = self.scene.addWidget(rect)
+        btn.setPos(x, y)
+
+    def selectField(self, name):
+        self.selected_field = name
+        self.close()
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.isAutoRepeat():
             event.accept()
             return
 
-        if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+        if self.enable_select and event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
             rect = self._selection_rect.mapToScene(self._selection_rect.rect()).boundingRect()
-            # print(f"Rect at scene ({rect.x():.1f}, {rect.y():.1f}) with size ({rect.width():.1f} x {rect.height():.1f})")
             self.selection_rect = { 'x': rect.x(), 'y': rect.y(), 'width': rect.width(), 'height': rect.height() }
             self.close()
         else:
             super().keyPressEvent(event)
 
+
+class ClickableRectItem(QPushButton):
+    def __init__(self, name, x, y, w, h, parent=None, onclick=lambda x: ()):
+        super().__init__()
+        self.resize(int(w),int(h))
+        self.setText(str(name))
+        self.setStyleSheet(f"""
+            QPushButton {{
+                background-color: rgba(0, 120, 215, 20);
+                border: 2px solid #0078d7;
+                color: #0078d7;
+                text-size: 2em;
+                font-size: {int(h*0.7)}px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(0, 120, 215, 40);
+            }}
+        """)
+        self._name = name
+        self._onclick = onclick
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._onclick(self._name)
+        else:
+            # Otherwise, default movable/selectable behavior
+            super().mousePressEvent(event)
 
 class ResizableRectItem(QGraphicsRectItem):
     EDGE_MARGIN = 10  # how close to the edge to count as a "resize zone" TODO make dependent on zoom level
@@ -306,18 +350,23 @@ def suppress_stderr():
 
 
 def selection_prompt(pil_img):
-
     with suppress_stderr():
-
         app = QApplication(sys.argv)
-        # QImage("./test.jpg")
         qimg = ImageQt(pil_img)
-        viewer = QtImageViewer(QPixmap.fromImage(qimg))
+        viewer = QtImageViewer(QPixmap.fromImage(qimg), enable_select=True)
         # Show viewer and run application.
         viewer.show()
         app.exec()
-
     return viewer.selection_rect
 
-
-    # with open(os.devnull, 'w') as f, redirect_stderr(f):
+def field_selection_prompt(pil_img, fields):
+    with suppress_stderr():
+        app = QApplication(sys.argv)
+        qimg = ImageQt(pil_img)
+        viewer = QtImageViewer(QPixmap.fromImage(qimg), enable_select=False)
+        for (nm, field) in fields:
+            viewer.addRect(nm, field['x'], field['y'], field['width'], field['height'])
+        # Show viewer and run application.
+        viewer.show()
+        app.exec()
+    return viewer.selected_field

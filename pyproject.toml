@@ -7,7 +7,7 @@ packages = ["resignation"]
 [project]
 name = "resignation"
 version = "0.0.1"
-requires-python = ">= 3.13"
+requires-python = ">= 3.12"
 description = "re[sign]ation: A script to create digital signatures"
 authors = [
   {name = "Max Kurze", email = "Max.Kurze@barkhauseninstitut.org"},
