@@ -1,3 +1,9 @@
+# Copyright (C) 2025 Max Kurze <max.kurze@barkhauseninstitut.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 or
+# later (see LICENSE.md).
+
 from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID

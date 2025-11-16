@@ -43,6 +43,7 @@
         /* the logo is centered behind the info text */
         place(center + horizon, overlay(logo, white.transparentize(30%))) +
         fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))
+        // TODO make sure font is available?
       )
     ),
     reflow: true

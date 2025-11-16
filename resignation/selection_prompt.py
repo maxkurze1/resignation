@@ -1,4 +1,10 @@
-# Disclaimer: this script is heavily influenced by
+# Copyright (C) 2025 Max Kurze <max.kurze@barkhauseninstitut.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 or
+# later (see LICENSE.md).
+
+# Disclaimer: this script is inspired by
 # https://github.com/marcel-goldschen-ohm/PyQtImageViewer
 
 import os.path

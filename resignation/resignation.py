@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+# Copyright (C) 2025 Max Kurze <max.kurze@barkhauseninstitut.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 or
+# later (see LICENSE.md).
+
 import fitz  # PyMuPDF
 from InquirerPy import prompt
 from InquirerPy import inquirer

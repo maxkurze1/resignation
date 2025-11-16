@@ -50,6 +50,7 @@
         ];
         dependencies = deps;
 
+        # only necessary for the stamp
         preFixup = ''
           makeWrapperArgs+=(--set TYPST_FONT_PATHS ${open-sans})
           makeWrapperArgs+=(--set TYPST_IGNORE_SYSTEM_FONTS true)
