@@ -325,7 +325,7 @@ def _main():
   config_params = {}
 
   # load all values from config if available
-  sig_conf = [Path(os.getenv("XDG_CACHE_HOME", "~/.config")).expanduser() / "resignation" / "config.toml"]
+  sig_conf = [Path(os.getenv("XDG_CONFIG_HOME", "~/.config")).expanduser() / "resignation" / "config.toml"]
   sig_conf_dir = sig_conf[0].resolve().parent
   if args.config:
     sig_conf = str(args.config).split(':')
