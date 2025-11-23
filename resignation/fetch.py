@@ -35,6 +35,10 @@ def install_typst_stamp(url : str, relative = ".") -> Path:
   # Windows: %LOCALAPPDATA% -- TODO
   cache_dir = Path(os.getenv("XDG_CACHE_HOME", "~/.cache")).expanduser()
 
+  query = parse_qs(url_info.query)
+  dir_path = ""
+  if 'dir' in query:
+    dir_path = query['dir'][0]
   if not url_info.scheme:
     # url is local path -> use it directly
     path = resolve_path(relative, url)
@@ -48,15 +52,11 @@ def install_typst_stamp(url : str, relative = ".") -> Path:
       )
       # fetch a nix flake-url into the nix store and return its local path
       prefetch_info = json.loads(process.stdout.decode())
-      path = Path(prefetch_info['storePath']) / prefetch_info["locked"].get("dir", "")
+      path = Path(prefetch_info['storePath']) / dir_path
     elif shutil.which("git"):
       from subprocess import DEVNULL
       # fetch with sparse git-clone
       path = cache_dir / "resignation" / url_info.path
-      query = parse_qs(url_info.query)
-      dir_path = ""
-      if 'dir' in query:
-        dir_path = query['dir'][0]
       if not path.exists():
         subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL)
       subprocess.run(["git", "sparse-checkout", "set", "--no-cone", "/" + dir_path], cwd=path, check=True, stdout=DEVNULL)
