@@ -7,6 +7,9 @@ outline: deep
 Most of the command line options can also be moved to a configuration file.
 This configuration should be a [TOML](https://toml.io/en/) file.
 
+The config should be located at (`$XDG_CONFIG_HOME` :? `~/.config`) `/resignation/config.toml`
+or explicitly specified on the command line using [`--config`](./cli.md#cli-config)
+
 Here is an example configuration file:
 
 ```toml
@@ -14,6 +17,8 @@ Here is an example configuration file:
 certificate = "~/Certificate.p12"
 password = "you_dont_have_to_store_it_here"
 # ^ but if you do, it is just plain text
+
+# you can select a specific branch with ref=<branch>
 # template = "github:maxkurze1/resignation?ref=dev&dir=templates/logo"
 template = "github:maxkurze1/resignation?dir=templates/logo"
 
@@ -33,10 +38,10 @@ university = '[IDK]'
 logo = 'image("./university.svg")'
 ```
 
-A single configuration can define multiple signature types.
+A single configuration can define multiple _signature types_.
 Each signature type contains all the necessary details for the creation
 of a specific signature, including the visuals (`template` + `param`) as
-well as the cryptographic part (`certificate` + `password`)
+well as its cryptographic part (`certificate` + `password`)
 
 Each signature type is referenced by its name.
 
