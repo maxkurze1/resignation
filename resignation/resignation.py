@@ -186,15 +186,23 @@ import os
 import sys
 import io
 import tomllib  # built-in since Python 3.11
+import keyring
+import hashlib
+
+def file_hash(path):
+  with open(path, "rb") as f:
+    return hashlib.sha256(f.read()).hexdigest().upper()
 
 def _main():
   parser = argparse.ArgumentParser(prog='resignation', description="digital signature creator")
   parser.add_argument("-i", "--input", help="input PDF file path")
   parser.add_argument("-o", "--output", help="output PDF file path")
-  parser.add_argument("--pass", "--password", help="password of certificate")
+  parser.add_argument("--pass", "--password", help="password of certificate (better use --ask)")
   parser.add_argument("--cert", "--certificate", help="path to certificate")
   parser.add_argument("-t", "--template", help="nix-url of stamp-template")
-  parser.add_argument("-c", "--config", help="path to config [':'<signature_name>]")
+  parser.add_argument("-c", "--config", help="path to config")
+  parser.add_argument("-s", "--sig", help="select which config entry (signature type) to use")
+  parser.add_argument("-a", "--ask", action="store_true", help="prompt for password (does not take it from keyring)")
   parser.add_argument("-p", "--param", "--params", action='append', help="template parameter", nargs='*')
   # TODO parser.add_argument('--version', action='version', version=f"%(prog)s {version("resignation")}", help="Show version and Git commit hash")
   args = parser.parse_args()
@@ -324,33 +332,42 @@ def _main():
   template_path = None
   config_params = {}
 
-  # load all values from config if available
-  sig_conf = [Path(os.getenv("XDG_CONFIG_HOME", "~/.config")).expanduser() / "resignation" / "config.toml"]
-  sig_conf_dir = sig_conf[0].resolve().parent
   if args.config:
-    sig_conf = str(args.config).split(':')
-    sig_conf_dir = Path(sig_conf[0]).resolve().parent
+    sig_conf = Path(args.config)
+  else:
+    sig_conf = Path(os.getenv("XDG_CONFIG_HOME", "~/.config")).expanduser() / "resignation" / "config.toml"
 
-  if Path(sig_conf[0]).expanduser().exists():
-    with open(Path(sig_conf[0]).expanduser(), "rb") as f: # must open in binary mode
+  sig_conf_dir = sig_conf.resolve().parent
+
+  if sig_conf.expanduser().exists():
+    with open(sig_conf.expanduser(), "rb") as f: # must open in binary mode
       data = tomllib.load(f)
 
     sig_conf_d = None
-    if len(sig_conf) > 1:
-      # TODO check for key error
-      sig_conf_d = data[sig_conf[1]]
+    if args.sig:
+    # TODO check for key error
+      sig_conf_d = data[args.sig]
+    elif 'default' in data:
+      sig_conf_d = data[data['default']]
     else:
       # try to load the first signature in config
       # TODO maybe consider opening a dialog here that lets the user choose one
-      key = next(iter(data), None)
-      if key:
-        sig_conf_d = data[key]
-      else:
+      # key = next(iter(data), None)
+      keys = [name for name, value in data.items() if isinstance(value, dict)]
+      if len(keys) == 0:
         print(f"Warning: Signature config file does not contain entries.", file=sys.stderr)
+      else:
+        key = inquirer.select(
+          message="Which signature type do you wanna use for signing?",
+          choices=keys,
+          default=None,
+          vi_mode=True,
+        ).execute()
+        sig_conf_d = data[key]
 
     if sig_conf_d:
       cert_path = resolve_path(sig_conf_dir, sig_conf_d['certificate']) if 'certificate' in sig_conf_d else None
-      password = sig_conf_d['password'].encode() if 'password' in sig_conf_d else None
+      config_password = sig_conf_d['password'].encode() if 'password' in sig_conf_d else None
       template_path = {"path": sig_conf_d['template'], "relative": sig_conf_dir} if 'template' in sig_conf_d else None
       config_params = sig_conf_d['param'] if 'param' in sig_conf_d else {}
 
@@ -359,32 +376,63 @@ def _main():
     # if different template is given on the command line ignore template + params of config
     template_path = {"path": args.template, "relative": '.'}
     config_params = {}
-  if getattr(args, 'pass'):
-    password = getattr(args, 'pass').encode()
+  if not template_path:
+    # if config does not contain template then also ignore params of config
+    template_path = {"path": inquirer.text(message="Enter signature template url:").execute(), "relative": '.'}
+    config_params = {}
+
   if args.cert:
     cert_path = Path(args.cert).resolve()
-
   # if some values are still missing -> prompt user
   if not cert_path:
     cert_path = Path(inquirer.filepath(
       message="Select Certificate file:",
       validate=PathValidator(is_file=True, message="Input is not a file"),
     ).execute()).expanduser().resolve()
+  cert_id = file_hash(cert_path)
 
-  # prompt password
-  if not password:
-    password = inquirer.secret(
-      message=f"Enter password (for {cert_path}):",
-      transformer=lambda _: "[hidden]",
-    ).execute().encode()
+  if not args.ask:
+    try_keyring = True
+    if getattr(args, 'pass'):
+      try_keyring = False
+      password = getattr(args, 'pass')
+      try:
+        cert_data = extract_data_from_pk12(cert_path, password.encode())
+      except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        exit(1)
+    elif config_password:
+      try_keyring = False
+      try:
+        cert_data = extract_data_from_pk12(cert_path, password.encode())
+      except ValueError: # if keyring fails -> ask
+        try_keyring = True
 
-  if not template_path:
-    # if config does not contain template then also ignore params of config
-    template_path = {"path": inquirer.text(message="Enter signature template url:").execute(), "relative": '.'}
-    config_params = {}
+    if try_keyring:
+      password = keyring.get_password("resignation", "sha256:" + cert_id)
+      try:
+        cert_data = extract_data_from_pk12(cert_path, password.encode())
+      except ValueError: # if keyring fails -> ask
+        args.ask = True
 
+  if args.ask: # loop until the user gets it correct
+    while True:
+      password = inquirer.secret(
+        message=f"Enter password (for {cert_path}):",
+        transformer=lambda _: "[hidden]",
+      ).execute()
+      try:
+        cert_data = extract_data_from_pk12(cert_path, password.encode())
+      except ValueError as e: # if keyring fails -> ask
+        print(f"Error: {e}", file=sys.stderr)
+        continue
+      save_pwd = inquirer.confirm(message="Save password?", default=True).execute()
+      if save_pwd:
+        keyring.set_password("resignation", "sha256:" + cert_id, password)
+      break
+
+  password = password.encode()
   typst_pkg = install_typst_stamp(template_path["path"], template_path["relative"])
-  cert_data = extract_data_from_pk12(cert_path, password)
 
   # TODO if rotation is set in template it is not clear if the box dimensions should be rotatet too or only the content?
   if new_field:

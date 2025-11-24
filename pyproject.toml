@@ -22,6 +22,7 @@ dependencies = [
   "pillow>=11.2.1",
   "inquirerpy>=0.3.4",
   "pyqt6>=6.9.0",
+  "keyring>=25.6.0"
 ]
 
 [project.urls]

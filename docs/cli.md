@@ -4,6 +4,10 @@ outline: deep
 
 # Command Line Interface
 
+None of these command line options are mandatory,
+all of them can be left out and the script will ask
+for all the details that it needs.
+
 ## Options
 
 ### `-i` / `--input` {#cli-input}
@@ -75,7 +79,25 @@ Example:
 
 Via this flag the certificate's password may be specified.
 
-If not present the password is loaded from the [config](./config.md) or prompted.
+If not present the password is loaded from the [config](./config.md), keyring or prompted.
+
+::: warning
+The usage of this flag is discouraged, please use [`--ask`](#cli-ask) instead, to
+prevent that the password is captured in your shell's history.
+:::
+
+Example:
+
+`--password "tHis!sMyPa22w0rd"`
+
+### `-a` / `--ask` {#cli-ask}
+
+This flag disables the keyring lookup and instead always prompts the user for the
+certificate's password. It is a boolean flag and does not need an argument.
+
+Example:
+
+`--ask`
 
 ### `-c` / `--config` {#cli-config}
 
@@ -90,6 +112,16 @@ For more information refer to [config](./config.md).
 Example:
 
 `--config "~/.config/resignation/config.toml"`
+
+### `-s` / `--sig` {#cli-sig}
+
+Specifies the name of the _signature type_ that should be used (only necessary if
+the config contains multiple signature types). If left unspecified, the config's
+[`default`](./config.md#default) will be used or the user will be prompted.
+
+Example:
+
+`--sig "Sig1"`
 
 ## Environment Variables
 

@@ -17,13 +17,15 @@
     pyPkgs = pkgs.python313Packages;
     deps = with pkgs;( [
       typst
-      python313
     ] ++ (with pyPkgs; [
+      python
+
       pyhanko
       pymupdf
       pillow
       inquirerpy
       pyqt6
+      keyring
     ]));
     in rec {
       devShells.default = with pkgs; mkShellNoCC {
