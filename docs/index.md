@@ -25,8 +25,8 @@ hero:
 This tool is intended to provide a little convenience for creating digitally signed PDFs on Linux.
 For that it is based on a couple of existing tools including:
 
-- [pyhanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
-- [typst](https://typst.app/) generation of the visual part
+- [pyHanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
+- [Typst](https://typst.app/) generation of the visual part
 
 # Why
 
@@ -39,9 +39,9 @@ Additionally, most of them have been rather inconvenient to use.
 # Features
 
 
-<div class="flex items-center justify-between gap-8">
+<div class="flex lg:flex-row flex-col items-center justify-center lg:gap-16 mb-16">
 
-<div>
+<div class="sm:text-center sm:max-w-136">
 
 ### Customizable Visual Signatures
 
@@ -50,15 +50,15 @@ appearance templates, or download existing ones, to adapt the signing experience
 
 </div>
 
-![](./assets/custom_sig_templates.png)
+![](./assets/custom_sig_templates.png){.max-w-104!}
 
 </div>
 
 
 
-<div class="flex flex-row-reverse items-center justify-between gap-8">
+<div class="flex lg:flex-row-reverse flex-col items-center justify-center lg:gap-16 mb-16">
 
-<div>
+<div class="sm:text-center sm:max-w-104">
 
 ### Visual Field Selection
 
@@ -66,14 +66,14 @@ Choose from existing signature fields through a visual interface and decide whic
 
 </div>
 
-![](./assets/field_selection.png)
+![](./assets/field_selection.png){.max-w-128!}
 
 </div>
 
 
-<div class="flex items-center justify-between gap-8">
+<div class="flex lg:flex-row flex-col items-center justify-center lg:gap-16 mb-16">
 
-<div>
+<div class="sm:text-center sm:max-w-96">
 
 ### Interactive Signature Placement
 
@@ -82,7 +82,7 @@ each signature should appear.
 
 </div>
 
-![](./assets/custom_field_creation.png)
+![](./assets/custom_field_creation.png){.max-w-112!}
 
 </div>
 
