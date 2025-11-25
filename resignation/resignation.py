@@ -473,12 +473,16 @@ def _main():
         )
       )
 
+
     signer = signers.SimpleSigner.load_pkcs12(
       pfx_file=cert_path, passphrase=password
     )
-
     meta = signers.PdfSignatureMetadata(field_name=new_field_name if new_field else field.field_name)
-    pdf_signer = signers.PdfSigner(
+
+    # necessary to handle the case of file_in = file_out
+    # doc needs to be closed and file_in needs to be closed before writing
+    tmp_file = io.BytesIO()
+    signers.PdfSigner(
       meta, signer=signer,
       stamp_style=stamp.StaticStampStyle.from_pdf_file(
         generate_signature_pdf(typst_pkg, template_data, template_path["relative"]),
@@ -489,22 +493,17 @@ def _main():
           margins=layout.Margins.uniform(0),
         )
       )
-    )
-    if args.output is not None:
-      file_out = args.output
-    else:
-      file_out = inquirer.filepath(
-        default=file_in,
-        message="Enter path to store output PDF:",
-      ).execute()
+    ).sign_pdf(w, output=tmp_file)
 
-    # necessary to handle the case of file_in = file_out
-    # doc needs to be closed and file_in needs to be closed before writing
-    tmp_file = io.BytesIO()
-    # print("inplace:", Path(file_out).exists() and os.path.samefile(file_in, file_out))
-    pdf_signer.sign_pdf(w, output=tmp_file)
+  if args.output is not None:
+    file_out = args.output
+  else:
+    file_out = inquirer.filepath(
+      default=file_in,
+      message="Enter path to store output PDF:",
+    ).execute()
 
-  doc.close()
+  doc.close() # free pymupdf buffer (necessary to override file)
   with open(file_out, 'wb') as outf:
     outf.write(tmp_file.getvalue())
   tmp_file.close()
