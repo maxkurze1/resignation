@@ -41,6 +41,8 @@ university = '[IDK]'
 logo = 'image("./university.svg")'
 ```
 
+<a id=sig-types></a>
+
 A single configuration can define multiple _signature types_ (here `Sig1` and `Sig2`).
 Each signature type contains all the necessary details for the creation
 of a specific signature, including the visuals (`template` + `param`) as

@@ -115,7 +115,7 @@ Example:
 
 ### `-s` / `--sig` {#cli-sig}
 
-Specifies the name of the _signature type_ that should be used (only necessary if
+Specifies the name of the [_signature type_](./config.md#sig-types) that should be used (only necessary if
 the config contains multiple signature types). If left unspecified, the config's
 [`default`](./config.md#default) will be used or the user will be prompted.
 
