@@ -200,14 +200,21 @@ def _main():
   parser.add_argument("--pass", "--password", help="password of certificate (better use --ask)")
   parser.add_argument("--cert", "--certificate", help="path to certificate")
   parser.add_argument("-t", "--template", help="nix-url of stamp-template")
+  parser.add_argument("--refresh", action="store_true", help="reload the template")
+  parser.add_argument("--offline", action="store_true", help="use cached template")
   parser.add_argument("-c", "--config", help="path to config")
   parser.add_argument("-s", "--sig", help="select which config entry (signature type) to use")
   parser.add_argument("-a", "--ask", action="store_true", help="prompt for password (does not take it from keyring)")
   parser.add_argument("-p", "--param", "--params", action='append', help="template parameter", nargs='*')
+
   # TODO parser.add_argument('--version', action='version', version=f"%(prog)s {version("resignation")}", help="Show version and Git commit hash")
   args = parser.parse_args()
 
   # validate passed params
+  if args.refresh and args.offline:
+    print("Error: --refresh and --offline are mutually exclusive options!", file=sys.stderr)
+    exit(1)
+
   cli_template_params = {}
   if args.param:
     for p in [x for l in args.param for x in l]:
@@ -432,7 +439,7 @@ def _main():
       break
 
   password = password.encode()
-  typst_pkg = install_typst_stamp(template_path["path"], template_path["relative"])
+  typst_pkg = install_typst_stamp(template_path["path"], template_path["relative"], refresh=args.refresh, offline=args.offline)
 
   # TODO if rotation is set in template it is not clear if the box dimensions should be rotatet too or only the content?
   if new_field:

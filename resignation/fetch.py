@@ -25,7 +25,7 @@ def resolve_path(relative: Path, path_str: str) -> Path:
 
 # TODO provide a command to purge all installed stamp packages (at least from the typst directory - nix store probably won't be possible)
 # fetch repository using nix and copy it to the typst package directory
-def install_typst_stamp(url : str, relative = ".") -> Path:
+def install_typst_stamp(url : str, relative = ".", refresh = False, offline = False) -> Path:
   # BIG TODO
   url_info = urlparse(url)
   cache_dir = {
@@ -45,8 +45,15 @@ def install_typst_stamp(url : str, relative = ".") -> Path:
     # TODO: this branch is only known to work with github:.. urls
     try:
       if shutil.which("nix"):
+
+        nix_fetch_cmd = ["nix", "flake", "prefetch", url, "--json"]
+        if refresh:
+          nix_fetch_cmd.append("--refresh")
+        if offline:
+          nix_fetch_cmd.append("--offline")
+
         process = subprocess.run(
-          ["nix", "flake", "prefetch", url, "--json"],
+          nix_fetch_cmd,
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE,
           text=True,
@@ -56,6 +63,7 @@ def install_typst_stamp(url : str, relative = ".") -> Path:
         prefetch_info = json.loads(process.stdout)
         path = Path(prefetch_info['storePath'])/dir_path
       elif shutil.which("git"):
+        # TODO support refresh and offline!
         from subprocess import DEVNULL
         # fetch with sparse git-clone
         path = cache_dir/"resignation"/url_info.path
