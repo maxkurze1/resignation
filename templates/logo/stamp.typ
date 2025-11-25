@@ -21,6 +21,7 @@
     logo: [],
     inset: 2pt,
     stroke: none,
+    logo_opacity: 30%,
     ..args) = {
   let args = args.named();
   // typst does not support arguments with default values that depend on other args
@@ -41,7 +42,7 @@
         align: (center + horizon, left + horizon),
         fit-to-width(max-text-size: height - 4pt, text(weight:"bold", name)),
         /* the logo is centered behind the info text */
-        place(center + horizon, overlay(logo, white.transparentize(30%))) +
+        place(center + horizon, overlay(logo, white.transparentize(logo_opacity))) +
         fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))
         // TODO make sure font is available?
       )
