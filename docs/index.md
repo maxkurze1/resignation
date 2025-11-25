@@ -36,6 +36,56 @@ signatures when drawing the visuals for a new one.
 
 Additionally, most of them have been rather inconvenient to use.
 
+# Features
+
+
+<div class="flex items-center justify-between gap-8">
+
+<div>
+
+### Customizable Visual Signatures
+
+Define how signatures should look by using a flexible module system. You can create and host your own
+appearance templates, or download existing ones, to adapt the signing experience to your needs.
+
+</div>
+
+![](./assets/custom_sig_templates.png)
+
+</div>
+
+
+
+<div class="flex flex-row-reverse items-center justify-between gap-8">
+
+<div>
+
+### Visual Field Selection
+
+Choose from existing signature fields through a visual interface and decide which one should be filled.
+
+</div>
+
+![](./assets/field_selection.png)
+
+</div>
+
+
+<div class="flex items-center justify-between gap-8">
+
+<div>
+
+### Interactive Signature Placement
+
+Create and position signature fields through an interactive view, specifying exactly where
+each signature should appear.
+
+</div>
+
+![](./assets/custom_field_creation.png)
+
+</div>
+
 # How to use
 
 To use `resignation` you have multiple options.
