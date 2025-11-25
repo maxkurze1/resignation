@@ -15,9 +15,7 @@ from urllib.parse import urlparse, parse_qs
 import tomllib
 import json
 import shutil
-
-
-from pathlib import Path
+import platform
 
 def resolve_path(relative: Path, path_str: str) -> Path:
   path = Path(path_str).expanduser()
@@ -30,10 +28,11 @@ def resolve_path(relative: Path, path_str: str) -> Path:
 def install_typst_stamp(url : str, relative = ".") -> Path:
   # BIG TODO
   url_info = urlparse(url)
-  # Linux: $XDG_CACHE_HOME or ~/.cache
-  # macOS: ~/Library/Caches -- TODO
-  # Windows: %LOCALAPPDATA% -- TODO
-  cache_dir = Path(os.getenv("XDG_CACHE_HOME", "~/.cache")).expanduser()
+  cache_dir = {
+    'Linux': Path(os.getenv("XDG_CACHE_HOME", "~/.cache")).expanduser(),
+    'Darwin': Path("~/Library/Caches").expanduser(),
+    'Windows': Path(os.path.expandvars("%LOCALAPPDATA%")),
+  }[platform.system()]
 
   query = parse_qs(url_info.query)
   dir_path = ""
@@ -44,33 +43,39 @@ def install_typst_stamp(url : str, relative = ".") -> Path:
     path = resolve_path(relative, url)
   else:
     # TODO: this branch is only known to work with github:.. urls
-    if shutil.which("nix"):
-      process = subprocess.run(
-        ["nix", "flake", "prefetch", url, "--json"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-      )
-      # fetch a nix flake-url into the nix store and return its local path
-      prefetch_info = json.loads(process.stdout.decode())
-      path = Path(prefetch_info['storePath']) / dir_path
-    elif shutil.which("git"):
-      from subprocess import DEVNULL
-      # fetch with sparse git-clone
-      path = cache_dir / "resignation" / url_info.path
-      if not path.exists():
-        subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL)
-      subprocess.run(["git", "sparse-checkout", "set", "--no-cone", "/" + dir_path], cwd=path, check=True, stdout=DEVNULL)
-      if 'ref' in query:
-        subprocess.run(["git", "switch", "-C", query['ref'][0], f"origin/{query['ref'][0]}"], cwd=path, check=True, stdout=DEVNULL)
+    try:
+      if shutil.which("nix"):
+        process = subprocess.run(
+          ["nix", "flake", "prefetch", url, "--json"],
+          stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE,
+          text=True,
+          check=True
+        )
+        # fetch a nix flake-url into the nix store and return its local path
+        prefetch_info = json.loads(process.stdout)
+        path = Path(prefetch_info['storePath'])/dir_path
+      elif shutil.which("git"):
+        from subprocess import DEVNULL
+        # fetch with sparse git-clone
+        path = cache_dir/"resignation"/url_info.path
+        if not path.exists():
+          subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL)
+        subprocess.run(["git", "sparse-checkout", "set", "--no-cone", "/" + dir_path], cwd=path, check=True, stdout=DEVNULL)
+        if 'ref' in query:
+          subprocess.run(["git", "switch", "-C", query['ref'][0], f"origin/{query['ref'][0]}"], cwd=path, check=True, stdout=DEVNULL)
 
-      subprocess.run(["git", "checkout"], cwd=path, check=True, stdout=DEVNULL)
+        subprocess.run(["git", "checkout"], cwd=path, check=True, stdout=DEVNULL)
 
-      path = path / dir_path
-    else:
-      print(f"Please install either 'git' or 'nix' to fetch remote templates.", file=sys.stderr)
+        path = path/dir_path
+      else:
+        print(f"Please install either 'git' or 'nix' to fetch remote templates.", file=sys.stderr)
+        exit(1)
+    except subprocess.CalledProcessError as e:
+      print(f"Failed to fetch template:\n{e.stderr}", file=sys.stderr)
       exit(1)
 
-  typst_config = path / "typst.toml"
+  typst_config = path/"typst.toml"
   if not typst_config.exists():
     print(f"Typst package config {typst_config} is missing.", file=sys.stderr)
     exit(1)
@@ -89,7 +94,7 @@ def install_typst_stamp(url : str, relative = ".") -> Path:
     exit(1)
 
   # copy typst package to local typst package cache
-  typst_repo_dir = cache_dir /  f"typst/packages/resignation/{pkg['name']}/{pkg['version']}"
+  typst_repo_dir = cache_dir/"typst"/"packages"/"resignation"/pkg['name']/pkg['version']
   if typst_repo_dir.exists():
     # change mode because these files are copied from the nix store and therefore read-only
     for root, dirs, files in os.walk(typst_repo_dir):
