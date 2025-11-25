@@ -16,3 +16,8 @@
 .vp-doc h1 {
   margin: 64px 0 16px;
 }
+
+.vp-doc p {
+  @apply text-justify;
+}
+

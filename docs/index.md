@@ -1,7 +1,7 @@
 ---
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
-
+title: ""
 hero:
   name: "re[sign]ation"
   # text: "A script to create digital signatures"
@@ -41,7 +41,7 @@ Additionally, most of them have been rather inconvenient to use.
 
 <div class="flex lg:flex-row flex-col items-center justify-center lg:gap-16 mb-16">
 
-<div class="sm:text-center sm:max-w-136">
+<div class="sm:max-w-136">
 
 ### Customizable Visual Signatures
 
@@ -50,7 +50,7 @@ appearance templates, or download existing ones, to adapt the signing experience
 
 </div>
 
-![](./assets/custom_sig_templates.png){.max-w-104!}
+![](./assets/custom_sig_templates.png){.max-w-104! .w-full}
 
 </div>
 
@@ -58,7 +58,7 @@ appearance templates, or download existing ones, to adapt the signing experience
 
 <div class="flex lg:flex-row-reverse flex-col items-center justify-center lg:gap-16 mb-16">
 
-<div class="sm:text-center sm:max-w-104">
+<div class="sm:max-w-104">
 
 ### Visual Field Selection
 
@@ -66,14 +66,14 @@ Choose from existing signature fields through a visual interface and decide whic
 
 </div>
 
-![](./assets/field_selection.png){.max-w-128!}
+![](./assets/field_selection.png){.max-w-128! .w-full}
 
 </div>
 
 
 <div class="flex lg:flex-row flex-col items-center justify-center lg:gap-16 mb-16">
 
-<div class="sm:text-center sm:max-w-96">
+<div class="sm:max-w-96">
 
 ### Interactive Signature Placement
 
@@ -82,7 +82,7 @@ each signature should appear.
 
 </div>
 
-![](./assets/custom_field_creation.png){.max-w-112!}
+![](./assets/custom_field_creation.png){.max-w-112! .w-full}
 
 </div>
 
@@ -90,7 +90,7 @@ each signature should appear.
 
 To use `resignation` you have multiple options.
 
-## Nix Flakes
+### Nix Flakes
 
 For use with nix, `resignation` provides a flake that can be run directly through nix:
 
@@ -103,7 +103,7 @@ nix run github:maxkurze1/resignation -- \
 
 For additional information about the available command line options please refer to [CLI](./cli.md).
 
-## PyPI
+### PyPI
 
 To install the script via pip execute the following command:
 (Use a venv if you don't want to install it globally)
