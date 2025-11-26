@@ -52,6 +52,15 @@ Examples:
 
 For additional information about the template process refer to [templates](./templates.md).
 
+### `--offline` {#cli-offline}
+
+Try to do everything offline, and emit an error if a resource is not available.
+
+### `--refresh` {#cli-refresh}
+
+Try to refresh resources that are fetched from the network (e.g. templates).
+In case the network is unavailable, fall back to the cached version instead.
+
 ### `-p` / `--param` / `--params` {#cli-params}
 
 Template specific parameters, refer to the documentation of your template.

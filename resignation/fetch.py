@@ -68,12 +68,23 @@ def install_typst_stamp(url : str, relative = ".", refresh = False, offline = Fa
         # fetch with sparse git-clone
         path = cache_dir/"resignation"/url_info.path
         if not path.exists():
-          subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL)
+          if not offline:
+            subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL)
+          else:
+            print(f"Template repository (github:{url_info.path}) not offline available!", file=sys.stderr)
+            exit(1)
         subprocess.run(["git", "sparse-checkout", "set", "--no-cone", "/" + dir_path], cwd=path, check=True, stdout=DEVNULL)
-        if 'ref' in query:
-          subprocess.run(["git", "switch", "-C", query['ref'][0], f"origin/{query['ref'][0]}"], cwd=path, check=True, stdout=DEVNULL)
 
-        subprocess.run(["git", "checkout"], cwd=path, check=True, stdout=DEVNULL)
+        if refresh: # seems to fetch commits from all branches
+          try:
+            subprocess.run(["git", "fetch", "--depth=1"], cwd=path, check=True, stdout=DEVNULL)
+          except subprocess.CalledProcessError as e:
+            print(f"Failed to fetch template:\n{e.stderr}", file=sys.stderr)
+
+        reset_cmd = ["git", "reset", "--hard"]
+        if 'ref' in query:
+          reset_cmd.append(f"origin/{query['ref'][0]}")
+        subprocess.run(reset_cmd, cwd=path, check=True, stdout=DEVNULL)
 
         path = path/dir_path
       else:
