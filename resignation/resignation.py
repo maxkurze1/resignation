@@ -263,7 +263,7 @@ def _main():
     def _handle_preview(event):
       nonlocal field_idx
       idx = show_annotated_page(doc, prompt.result_value)
-      if idx:
+      if idx is not None:
         field_idx = idx
         event.app.exit()
 
@@ -278,7 +278,7 @@ def _main():
     _page_idx = prompt.execute()
     if new_field:
       break
-    if field_idx:
+    if field_idx is not None:
       break
 
     min_idx = 0
@@ -304,7 +304,7 @@ def _main():
       @prompt.register_kb("v")
       def _handle_preview(event):
         idx = show_annotated_page(doc, _page_idx)
-        if idx:
+        if idx is not None:
           event.app.exit(result=idx)
 
       @prompt.register_kb("n")
@@ -324,7 +324,7 @@ def _main():
     # -> loop back to page selection
     if new_field:
       break
-    if field_idx_opt:
+    if field_idx_opt is not None:
       field_idx = int(field_idx_opt)
       break
 

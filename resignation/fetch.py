@@ -84,6 +84,7 @@ def install_typst_stamp(url : str, relative = ".", refresh = False, offline = Fa
         reset_cmd = ["git", "reset", "--hard"]
         if 'ref' in query:
           reset_cmd.append(f"origin/{query['ref'][0]}")
+          # TODO: switch to main branch in case no ref is given (currently we just stay on the previous feature branch)
         subprocess.run(reset_cmd, cwd=path, check=True, stdout=DEVNULL)
 
         path = path/dir_path
