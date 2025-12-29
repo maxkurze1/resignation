@@ -19,3 +19,14 @@
     date: [02.11.2025 16:56:02 +0100],
   )
 ]
+
+#stamp(
+  inset: 1pt,
+  stroke: (paint: gray, thickness: 0.5pt, dash: "dashed"),
+  width: 100pt,
+  height: 20pt,
+  logo_opacity: 100%,
+  logo: image("logo.svg"),
+  cert_name: [Test Name],
+  date: [02.11.2025 16:56:02 +0100],
+)

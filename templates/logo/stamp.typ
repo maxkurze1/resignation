@@ -42,7 +42,7 @@
         align: (center + horizon, left + horizon),
         fit-to-width(max-text-size: height - 4pt, text(weight:"bold", name)),
         /* the logo is centered behind the info text */
-        place(center + horizon, overlay(logo, white.transparentize(logo_opacity))) +
+        place(center + horizon, if logo_opacity == 100% { logo } else { overlay(logo, white.transparentize(logo_opacity)) }) +
         fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))
         // TODO make sure font is available?
       )
