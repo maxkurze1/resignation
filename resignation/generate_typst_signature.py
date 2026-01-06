@@ -29,9 +29,9 @@ def generate_signature_pdf(stamp_pkg, params, cwd) :
     stderr=subprocess.PIPE
   )
 
-  stderr = process.stderr.decode()
-  if stderr:
-    print("Typst produced the following error:", file=sys.stderr)
+  if process.returncode != 0:
+    stderr = process.stderr.decode()
+    print("Typst failed:", file=sys.stderr)
     print(stderr, file=sys.stderr)
     exit(1)
 
