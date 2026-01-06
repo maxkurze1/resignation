@@ -271,14 +271,12 @@ def _main():
     def _handle_new_field(event):
       nonlocal new_field, page_idx
       new_field = create_new_field(doc, prompt.result_value)
-      if new_field:
+      if new_field is not None:
         page_idx = prompt.result_value
         prompt.application.exit()
 
     _page_idx = prompt.execute()
-    if new_field:
-      break
-    if field_idx is not None:
+    if new_field is not None or field_idx is not None:
       break
 
     min_idx = 0
@@ -288,8 +286,7 @@ def _main():
 
     field_idx_opt = None
     if max_idx < min_idx:
-      create_new = inquirer.confirm(message="No field available, create new one?", default=True).execute()
-      if create_new:
+      if inquirer.confirm(message="No field available, create new one?", default=True).execute():
         new_field = create_new_field(doc, _page_idx)
         page_idx = _page_idx
     else:
@@ -337,6 +334,7 @@ def _main():
   cert_path = None
   password = None
   template_path = None
+  config_password = None
   config_params = {}
 
   if args.config:
