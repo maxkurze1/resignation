@@ -383,7 +383,11 @@ def _main():
     config_params = {}
   if not template_path:
     # if config does not contain template then also ignore params of config
-    template_path = {"path": inquirer.text(message="Enter signature template url:").execute(), "relative": '.'}
+    path = inquirer.text(message="Enter signature template url:").execute()
+    if not path: # take logo stamp as default if none is provided
+      path = "github:maxkurze1/resignation?dir=templates/logo"
+    template_path = {"path": path, "relative": '.'}
+
     config_params = {}
 
   if args.cert:
@@ -398,7 +402,7 @@ def _main():
 
   if not args.ask:
     try_keyring = True
-    if getattr(args, 'pass'):
+    if getattr(args, 'pass', None):
       try_keyring = False
       password = getattr(args, 'pass')
       try:
@@ -410,15 +414,18 @@ def _main():
       try_keyring = False
       try:
         cert_data = extract_data_from_pk12(cert_path, password.encode())
-      except ValueError: # if keyring fails -> ask
+      except ValueError: # if config pass fails -> try keyring
         try_keyring = True
 
     if try_keyring:
       password = keyring.get_password("resignation", "sha256:" + cert_id)
-      try:
-        cert_data = extract_data_from_pk12(cert_path, password.encode())
-      except ValueError: # if keyring fails -> ask
+      if password is None:
         args.ask = True
+      else:
+        try:
+          cert_data = extract_data_from_pk12(cert_path, password.encode())
+        except ValueError: # if keyring fails -> ask
+          args.ask = True
 
   if args.ask: # loop until the user gets it correct
     while True:
