@@ -63,7 +63,6 @@ def install_typst_stamp(url : str, relative = ".", refresh = False, offline = Fa
         prefetch_info = json.loads(process.stdout)
         path = Path(prefetch_info['storePath'])/dir_path
       elif shutil.which("git"):
-        # TODO support refresh and offline!
         from subprocess import DEVNULL
         # fetch with sparse git-clone
         path = cache_dir/"resignation"/url_info.path

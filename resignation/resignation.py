@@ -181,7 +181,9 @@ from .fetch import install_typst_stamp, resolve_path
 import uuid
 from pathlib import Path
 
-# TODO from importlib.metadata import version
+from setuptools_scm import get_version
+__version__ = get_version(root="..", relative_to=__file__)
+
 import argparse
 import os
 import sys
@@ -189,6 +191,7 @@ import io
 import tomllib  # built-in since Python 3.11
 import keyring
 import hashlib
+
 
 def file_hash(path):
   with open(path, "rb") as f:
@@ -207,8 +210,7 @@ def _main():
   parser.add_argument("-s", "--sig", help="select which config entry (signature type) to use")
   parser.add_argument("-a", "--ask", action="store_true", help="prompt for password (does not take it from keyring)")
   parser.add_argument("-p", "--param", "--params", action='append', help="template parameter", nargs='*')
-
-  # TODO parser.add_argument('--version', action='version', version=f"%(prog)s {version("resignation")}", help="Show version and Git commit hash")
+  parser.add_argument('--version', action='version', version=f"%(prog)s {__version__}", help="Show version")
   args = parser.parse_args()
 
   # validate passed params

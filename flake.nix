@@ -20,6 +20,7 @@
     ] ++ (with pyPkgs; [
       python
 
+      setuptools-scm
       pyhanko
       pymupdf
       pillow
