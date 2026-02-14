@@ -175,6 +175,7 @@ from pyhanko import stamp
 from pyhanko.sign import fields, signers
 from pyhanko.pdf_utils import layout
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
+from pyhanko.pdf_utils.crypt import StandardSecurityHandler, AuthStatus
 
 from .fetch import install_typst_stamp, resolve_path
 import uuid
@@ -238,6 +239,20 @@ def _main():
 
   # process PDF for signature fields
   doc = fitz.open(file_in)
+  pdf_password = ""
+  # check encryption
+  if doc.is_encrypted:
+    # like adobe - don't ask in case of empty password
+    auth_result = doc.authenticate(pdf_password)
+    while not auth_result:
+      pdf_password = inquirer.secret(
+        message=f"Enter pdf password (for {file_in}):",
+        transformer=lambda _: "[hidden]",
+      ).execute()
+      auth_result = doc.authenticate(pdf_password)
+      if not auth_result:
+        print("wrong password")
+
   page_choices = []
   for i, page in enumerate(doc):
     page_choices.append(
@@ -355,9 +370,7 @@ def _main():
     elif 'default' in data:
       sig_conf_d = data[data['default']]
     else:
-      # try to load the first signature in config
-      # TODO maybe consider opening a dialog here that lets the user choose one
-      # key = next(iter(data), None)
+      # let user choose template
       keys = [name for name, value in data.items() if isinstance(value, dict)]
       if len(keys) == 0:
         print(f"Warning: Signature config file does not contain entries.", file=sys.stderr)
@@ -470,6 +483,13 @@ def _main():
 
   with open(file_in, 'rb') as file:
     w = IncrementalPdfFileWriter(file, strict=False)
+
+    if w.security_handler is not None:
+      # File is encrypted
+      if not isinstance(w.security_handler, StandardSecurityHandler):
+        print("Error: Unsupported file encryption", file=sys.stderr)
+        exit(1)
+      auth_result = w.encrypt(pdf_password)
 
     if new_field:
       new_field = rotate_field(new_field, page.rect.width, page.rect.height, page.rotation)
