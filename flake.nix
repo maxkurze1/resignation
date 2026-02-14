@@ -20,6 +20,7 @@
     ] ++ (with pyPkgs; [
       python
 
+      setuptools-scm
       pyhanko
       pymupdf
       pillow
@@ -27,6 +28,7 @@
       pyqt6
       keyring
     ]));
+    version = "nix-" + (self.shortRev or self.dirtyShortRev or "unknown");
     in rec {
       devShells.default = with pkgs; mkShellNoCC {
         buildInputs = deps;
@@ -36,8 +38,8 @@
       };
       packages.default = with pkgs; pyPkgs.buildPythonApplication {
         pname = "resignation";
-        version = "1.0";
         pyproject = true;
+        version = version;
 
         src = lib.cleanSourceWith {
           src = ./.;
@@ -56,6 +58,7 @@
         preFixup = ''
           makeWrapperArgs+=(--set TYPST_FONT_PATHS ${open-sans})
           makeWrapperArgs+=(--set TYPST_IGNORE_SYSTEM_FONTS true)
+          makeWrapperArgs+=(--set SETUPTOOLS_SCM_PRETEND_VERSION "${version}")
         '';
       };
 
