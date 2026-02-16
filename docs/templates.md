@@ -94,7 +94,7 @@ by the Typst [documentation](https://github.com/typst/packages/blob/main/docs/ma
 
 Your main Typst file (referenced as `entrypoint` in the config) needs to contain a function
 called `stamp`. This function will be invoked during the signature creation. It may accept arbitrary
-named parameters. Most of these parameters need to be supplied be the user.
+named parameters. Most of these parameters need to be supplied by the user.
 
 To ensure the stamp fits properly within the signature box, the following boilerplate is recommended:
 
