@@ -71,7 +71,7 @@ def install_typst_stamp(url : str, relative = ".", refresh = False, offline = Fa
           if not offline:
             subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL)
           else:
-            print(f"Template repository (github:{url_info.path}) not offline available!", file=sys.stderr)
+            print(f"Template repository (github:{url_info.path}) not available offline!", file=sys.stderr)
             exit(1)
         subprocess.run(["git", "sparse-checkout", "set", "--no-cone", "/" + dir_path], cwd=path, check=True, stdout=DEVNULL)
 
