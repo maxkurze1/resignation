@@ -89,7 +89,7 @@ as shown in the [example](#example) above.
 
 ### `certificate` {#certificate}
 
-Specifies the certificate file just like [`--certificate`](./cli.md#cli-certificate), exept
+Specifies the certificate file just like [`--certificate`](./cli.md#cli-certificate), except
 that the given path is resolved relative to the configuration file.
 
 ### `password` {#password}
@@ -111,12 +111,17 @@ To avoid potential password theft, you can leave this option unset — you will 
 
 ### `template` {#template}
 
-Specifies the template file just like [`--template`](./cli.md#cli-template), exept
+Specifies the template file just like [`--template`](./cli.md#cli-template), except
 that the given path is resolved relative to the configuration file.
 
 ### `param` {#param}
 
-Parameters to instantiate the Typst template refer to [templates](./templates.md). (see [`--params`](./cli.md#cli-params))
+Parameters to instantiate the Typst template with. These parameters are (for the most part)
+highly specific to the stamp template you are using. Thus, you should search for
+their specification in the documentation of your template. (see [here](https://github.com/maxkurze1/resignation/tree/main/templates) for the default stamps)
+
+For more information — also regarding the few template agnostic parameters — refer to [templates](./templates.md).
+The corresponding command-line option for `param` is [`--params`](./cli.md#cli-params).
 
 ::: warning
 You should not use absolute paths in these parameters as they are all passed to Typst. And Typst
@@ -124,8 +129,8 @@ does not like them! Specifically all paths should be relative and inside Typst's
 This working directory is either the config or the `$PWD` of the `resignation` invocation, depending
 on whether the `template` was specified through the config or as CLI argument.
 
-Be aware: When setting the template in the config, giving additional params as CLI args should use
-(quite unintuitive) links relative to the config.
+Be aware: When setting the template in the config and additionally giving `--params` via the CLI, then
+these CLI parameters should use (quite counter-intuitive) links relative to the config.
 
 For more technical infos on this limitation see this [issue](https://github.com/maxkurze1/resignation/issues/3)
 :::

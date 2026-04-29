@@ -21,7 +21,7 @@ Example:
 
 ### `-o` / `--output` {#cli-output}
 
-Specifies the path to the outupt PDF.
+Specifies the path to the output PDF.
 If omitted, the path is prompted.
 
 Example:
@@ -63,9 +63,10 @@ In case the network is unavailable, fall back to the cached version instead.
 
 ### `-p` / `--param` / `--params` {#cli-params}
 
-Template specific parameters, refer to the documentation of your template.
+Template specific parameters, refer to the documentation of your template. (see [here](https://github.com/maxkurze1/resignation/tree/main/templates) for the default stamps)
+
 These parameters are given as key-value pairs (in the form `<key>=<value>`).
-The provided values need to be valid Typst objects, see [templates](./templates.md#parameters)
+The provided values need to be valid Typst objects, see [templates](./templates.md#parameters).
 
 This flag accepts multiple parameters at once, but it can also be invoked multiple times.
 
