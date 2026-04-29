@@ -189,6 +189,7 @@ import io
 import tomllib  # built-in since Python 3.11
 import keyring
 import hashlib
+import platform
 
 def file_hash(path):
   with open(path, "rb") as f:
@@ -355,7 +356,12 @@ def _main():
   if args.config:
     sig_conf = Path(args.config)
   else:
-    sig_conf = Path(os.getenv("XDG_CONFIG_HOME", "~/.config")).expanduser() / "resignation" / "config.toml"
+    sig_conf = {
+      'Linux': Path(os.getenv("XDG_CONFIG_HOME", "~/.config")).expanduser(),
+      'Darwin': Path("~/Library/Application Support/").expanduser(),
+      'Windows': Path(os.path.expandvars("%APPDATA%")),
+    }[platform.system()]/"resignation"/"config.toml"
+
 
   sig_conf_dir = sig_conf.resolve().parent
 

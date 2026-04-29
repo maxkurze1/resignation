@@ -7,8 +7,25 @@ outline: deep
 Most of the command line options can also be moved to a configuration file.
 This configuration should be a [TOML](https://toml.io/en/) file.
 
-The config should be located at <code><span class="text-black">${</span>XDG_CONFIG_HOME<span class="text-black">:-</span>~/.config<span class="text-black">}</span>/resignation/config.toml</code>
-or explicitly specified on the command line using [`--config`](./cli.md#cli-config)
+The config needs to be explicitly specified on the command line using [`--config`](./cli.md#cli-config)
+or should be located at:
+
+::: code-group
+
+``` [Linux]
+${XDG_CONFIG_HOME:-~/.config}/resignation/config.toml
+```
+
+``` [MacOS]
+~/Library/Application Support/resignation/config.toml
+```
+
+``` [Windows]
+%APPDATA%/resignation/config.toml
+```
+
+:::
+
 
 Here is an example configuration file:
 
