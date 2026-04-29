@@ -64,28 +64,38 @@ def install_typst_stamp(url : str, relative = ".", refresh = False, offline = Fa
         path = Path(prefetch_info['storePath'])/dir_path
       elif shutil.which("git"):
         # TODO support refresh and offline!
-        from subprocess import DEVNULL
+        from subprocess import DEVNULL, PIPE
         # fetch with sparse git-clone
         path = cache_dir/"resignation"/url_info.path
         if not path.exists():
           if not offline:
-            subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL)
+            print(f"Cloning stamp template repository (github:{url_info.path}) into {path}")
+            subprocess.run(["git", "clone", "--no-checkout", "--depth=1", "--filter=blob:none", "--no-single-branch", f"https://github.com/{url_info.path}", path], check=True, stdout=DEVNULL, stderr=PIPE, text=True)
           else:
             print(f"Template repository (github:{url_info.path}) not available offline!", file=sys.stderr)
             exit(1)
-        subprocess.run(["git", "sparse-checkout", "set", "--no-cone", "/" + dir_path], cwd=path, check=True, stdout=DEVNULL)
+        subprocess.run(["git", "sparse-checkout", "set", "--no-cone", "/" + dir_path], cwd=path, check=True, stdout=DEVNULL, stderr=PIPE, text=True)
 
-        if refresh: # seems to fetch commits from all branches
-          try:
-            subprocess.run(["git", "fetch", "--depth=1"], cwd=path, check=True, stdout=DEVNULL)
-          except subprocess.CalledProcessError as e:
-            print(f"Failed to fetch template:\n{e.stderr}", file=sys.stderr)
-
-        reset_cmd = ["git", "reset", "--hard"]
+        ref = ''
         if 'ref' in query:
-          reset_cmd.append(f"origin/{query['ref'][0]}")
-          # TODO: switch to main branch in case no ref is given (currently we just stay on the previous feature branch)
-        subprocess.run(reset_cmd, cwd=path, check=True, stdout=DEVNULL)
+          ref = f"origin/{query['ref'][0]}"
+        else:
+          ref = f"origin/HEAD"
+
+        # check if specified branch (ref) is known locally
+        rev_parse = subprocess.run(["git", "rev-parse", "--verify", ref], cwd=path, stdout=DEVNULL, stderr=DEVNULL, text=True)
+        ref_available = rev_parse.returncode == 0
+
+        if refresh or (not ref_available and not offline):
+          try:
+            subprocess.run(["git", "fetch", "--depth=1", "origin", query['ref'][0]], cwd=path, check=True, stdout=DEVNULL, stderr=PIPE, text=True)
+          except subprocess.CalledProcessError as e:
+            print(f"Failed to fetch specified branch of the template repository.", file=sys.stderr)
+            print(f"This is likely caused by a typo in the branch name: '{query['ref'][0]}'", file=sys.stderr)
+            print(f"Git error:\n{e.stderr}", file=sys.stderr)
+            exit(1)
+
+        subprocess.run(["git", "reset", "--hard", ref], cwd=path, check=True, stdout=DEVNULL, text=True)
 
         path = path/dir_path
       else:
