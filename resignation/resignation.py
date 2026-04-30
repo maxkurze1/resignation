@@ -112,6 +112,7 @@ from .generate_typst_signature import generate_signature_pdf
 
 
 from datetime import datetime
+import subprocess
 
 def get_formatted_date():
   now = datetime.now().astimezone()
@@ -150,8 +151,31 @@ def resolve_param(key, params, seen=None):
 
   return value
 
+
+def expand_shell_cmds(key, params):
+  value = params[key]
+
+  matches = re.findall(r'\{shell:([^{}]+)\}', value)
+  if not matches:
+    return value
+
+  for m in matches:
+    cmd_out = ""
+    try:
+      cmd_out = subprocess.check_output(m, shell=True, text=True).strip()
+    except subprocess.CalledProcessError as e:
+      print(f"Shell command in parameter failed!", file=sys.stderr)
+      print(f"Parameter: '{key}' Command: '{m}' Stderr:", file=sys.stderr)
+      print(e.stderr, file=sys.stderr)
+      exit(1)
+    value = value.replace(f'{{shell:{m}}}', cmd_out)
+
+  return value
+
 def resolve_all(params):
   resolved = {}
+  for key in params:
+    params[key] = expand_shell_cmds(key, params)
   for key in params:
     resolved[key] = resolve_param(key, params)
   return resolved
