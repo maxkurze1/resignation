@@ -39,23 +39,32 @@ certificate = "~/Certificate.p12"
 password = "you_dont_have_to_store_it_here"
 # ^ but if you do, it is just plain text
 
-# you can select a specific branch with ref=<branch>
+# You can select a specific branch with ref=<branch>
 # template = "github:maxkurze1/resignation?ref=dev&dir=templates/logo"
 template = "github:maxkurze1/resignation?dir=templates/logo"
 
 [Sig1.param]
-# name = '[Max Kurze]'
-# info = '[#{date}\ another line #{cert_name}]'
+name = '[Max Kurze]'
 logo = 'image("./company.svg")'
+info = '[#{date}\ name: #{name}]'
+# You can refer to other parameters using the '{ ... }'
+# syntax - but keep in mind that, by convention,
+# all parameters are typst primitives. Thus they should be
+# used from within "code-mode"
 
 [Sig2]
 certificate = "~/anotherCert.p12"
 template = "../templates/logo/"
+# templates can also be stored locally
 
 [Sig2.param]
 info = '[#{date}\ Signed by #{cert_name} from #{university}]'
 university = '[IDK]'
 logo = 'image("./university.svg")'
+date = '[{shell: date "+%A, %d %B %Y %H:%M"}]'
+# Even arbitrary shell commands are supported by a '{shell: ... }'
+# syntax. Again, keep in mind to wrap them into a typst content
+# block '[ ... ]'.
 ```
 
 <a id=sig-types></a>
@@ -74,8 +83,7 @@ Specifies the name of the signature type which should be used with
 this config if no name is given explicitly using [`--sig`](./cli.md#cli-sig).
 
 If neither `default` nor `--sig` is present, resignation will show a
-selection prompt of all available signature types of the selected
-config file.
+selection prompt of all available signature types in config file.
 
 Example:
 

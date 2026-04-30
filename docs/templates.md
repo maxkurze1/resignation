@@ -12,28 +12,33 @@ a [Typst](https://typst.app/)-based plugin system.
 The parameters given through either the [config](./config.md#param),
 [environment](./cli.md#env-params) or as [CLI](./cli.md#cli-params) options
 are passed (more or less) directly to the Typst signature template.
-Therefore, their values should be valid Typst objects. This means that
-most parameters need to be wrapped into Typst content blocks `[ ... ]`, e.g.
-`name=[Some Name]`. However, some parameters might also be used differently,
+Therefore, by convention, their values should be valid Typst objects/primitives. In other words,
+most parameter values need to be wrapped into Typst content blocks `[ ... ]`, e.g.
+`name=[Some Name]`. However, some values might also be handled differently,
 like `inset=3pt`. Which type a parameter expects needs to be documented by
-the template in question.
+the template itself.
+
+There exist no defaults regarding the visual impact of these parameters on the template.
+The only convention is that `height`, `width`, and `rotation` should be handled as
+shown in the [example below](#custom-stamps).
+
 
 ::: warning
 If the template is specified on the command line, parameters in the config
 are ignored.
 :::
 
-#### Defaults
+#### Defaults {#defaults}
 
 For some parameters default values are supplied. The following are automatically set:
 
 - `height`: The height of the selected signature box
 - `width`: The width of the selected signature box
-- `rotation`: The *counter*-rotation of the page containing the signature
-  (i.e. the necessary rotation to counteract the page's rotation)
+- `rotation`: The *counter*-rotation of the page containing the signature\
+  (i.e. the necessary rotation to counteract the page's own rotation)
 - `date`: The current time + date
 
-Additionally, the following are extracted from the given signature:
+Additionally, the following are extracted from the given signature (if available):
 
 - `cert_name`: from the certificate's subject (id: `2.5.4.3`)
 - `cert_country`: from the certificate's subject (id: `2.5.4.6`)
@@ -56,24 +61,33 @@ These references may very well use the default parameters.
 
 Example:
 
-`info=[This is my custom Signature\ Date: #{date}]`
+`info='[This is my custom Signature\ Date: #{date}]'`
 
 ::: info
-All default parameters expect to be invoked from Typst code-mode, thus
+By convention, all default parameters expect to be invoked from Typst code-mode, thus
 to use them you need to prefix them by a hash `#`.
 
 The previous example resolves to:
 
-`info=[This is my custom Signature\ Date: #[13.11.2025 10:51:34 ...]]`
+`info='[This is my custom Signature\ Date: #[13.11.2025 10:51:34 ...]]'`
 :::
 
 The parameter precedence is as follows:
 
 ```
-(Typst defaults) < config < environment < CLI option
+(template default) < (default) < config < environment < CLI option
 ```
 
-## Custom stamps
+#### Shell Commands
+
+As another convenience, parameters may also contain shell commands. These
+are specified by a syntax similar to the references `{shell: <cmd>}`.
+
+Example:
+
+`date='[{shell: date "+%A, %d %B %Y %H:%M"}]'`
+
+## Custom stamps {#custom-stamps}
 
 To create your own stamp, you need to create a directory which contains a `typst.toml` as described
 by the Typst [documentation](https://github.com/typst/packages/blob/main/docs/manifest.md).
