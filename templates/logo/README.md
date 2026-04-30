@@ -44,6 +44,15 @@ Example:
 ### logo_opacity
 
 Opacity of the background logo.
+
+> [!TIP]
+> Unfortunately, for the time being,
+> this opacity is realized by overlaying a partially-transparent
+> white box over the image itself. This may look a bit weird in
+> certain editors. Thus, it is recommended to use an image with
+> built-in transparency and disable this options by setting it to
+> `100%`.
+
 (default: `30%`)
 
 Example:
