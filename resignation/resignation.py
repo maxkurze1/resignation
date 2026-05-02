@@ -224,6 +224,7 @@ import tomllib  # built-in since Python 3.11
 import keyring
 import hashlib
 import platform
+import re
 
 
 def file_hash(path):
@@ -240,6 +241,7 @@ def _main():
   parser.add_argument("--refresh", action="store_true", help="reload the template")
   parser.add_argument("--offline", action="store_true", help="use cached template")
   parser.add_argument("-c", "--config", help="path to config")
+  parser.add_argument("--new-field", help="create new field at \"<page>/<x,y,x2,y2>\"\n or \"<page>/<x,y,+width,+height>\"")
   parser.add_argument("-s", "--sig", help="select which config entry (signature type) to use")
   parser.add_argument("-a", "--ask", action="store_true", help="prompt for password (does not take it from keyring)")
   parser.add_argument("-p", "--param", "--params", action='append', help="template parameter", nargs='*')
@@ -262,6 +264,21 @@ def _main():
         cli_template_params[p] = 'true'
         # print(f"Error: invalid input ({p}) - params need to be key value pairs given in the form '<key>=<value>'.", file=sys.stderr)
         # sys.exit(1)
+
+  if args.new_field is not None:
+    pattern = r"^(\d+)/(\d+),(\d+),(\+?\d+),(\+?\d+)$"
+    match = re.match(pattern, args.new_field)
+    if not match:
+      print("Error: specified --new-field does not match the required format!", file=sys.stderr)
+      exit(1)
+    page, x, y, w, h = match.groups()
+    args.new_field = {
+      'page': int(page),
+      'x': int(x),
+      'y': int(y),
+      'width':  int(w) if w.startswith("+") else int(w) - int(x),
+      'height': int(h) if h.startswith("+") else int(h) - int(y),
+    }
 
   # check / prompt for input path
   if args.input is not None:
@@ -301,7 +318,11 @@ def _main():
   new_field = None
   page_idx = None
   field_idx = None
-  while True:
+  if args.new_field is not None:
+    page_idx = args.new_field['page']
+    new_field = args.new_field
+  # skip loop in case field is explicitly given on CLI
+  while True and (args.new_field is None):
     prompt = inquirer.select(
       message="On which page do you want to sign?\n  (empty fields / total fields)\n (press 'v' for a visual selection)\n (press 'n' to add a new field):",
       choices=page_choices,

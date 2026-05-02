@@ -28,6 +28,29 @@ Example:
 
 `--output "./put/it/here/document-sined.pdf"`
 
+### `--new-field` {#cli-new-field}
+
+Specify the page + position of a new signature field.
+This will cause this new field to be created and
+immediately selected for signing.
+
+The field's position may be specified either using
+the upper-left and lower-right corners or using the
+upper-left corner together with a width and height.
+
+Relative values (width and height) are distinguished by
+a `+` prefix.
+
+Format:
+
+`<page>/<x1>,<y1>,<x2>,<y2>` or<br>
+`<page>/<x>,<y>,+<width>,+<height>`
+
+Examples:
+
+`--new-field 0/100,50,200,90`<br>
+`--new-field 1/100,50,+100,+40`
+
 ### `-t` / `--template` {#cli-template}
 
 This option specifies the Typst template which is used to generate the visual
