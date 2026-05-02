@@ -99,7 +99,6 @@ named parameters. Most of these parameters need to be supplied by the user.
 To ensure the stamp fits properly within the signature box, the following boilerplate is recommended:
 
 ```typst
-
 #let stamp(height: 0pt, width: 0pt, rotation: 0deg, ..args) = {
   rotate(rotation,
     box(height: height, width: width,
