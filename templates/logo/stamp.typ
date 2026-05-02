@@ -28,6 +28,7 @@
   // (i.e. its not possible to write 'name: [#cert_name]' in the arg list)
   // but we can emulate them:
   let name = args.at("name", default: cert_name);
+  let left_side = args.at("left", default: name)
   let info = args.at("info", default: [Digitally signed by #name\ Date: #date]);
   rotate(rotation,
     box(
@@ -40,7 +41,7 @@
         rows: (1fr),
         gutter: 3pt,
         align: (center + horizon, left + horizon),
-        fit-to-width(max-text-size: height - 4pt, text(weight:"bold", name)),
+        fit-to-width(max-text-size: height - 4pt, text(weight:"bold", left_side)),
         /* the logo is centered behind the info text */
         place(center + horizon, if logo_opacity == 100% { logo } else { overlay(logo, white.transparentize(logo_opacity)) }) +
         fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))

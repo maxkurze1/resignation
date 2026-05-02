@@ -21,9 +21,15 @@ Example
 Padding between the signatures box and its content.
 (default: `2pt`)
 
+### left
+
+The content that is shown on the left half of the signature.
+(default: `name`)
+
 ### name
 
-The name that is shown on the left half of the signature.
+The name that is used for the left half of the signature as
+well as for the info on the right.
 (default: `{cert_name}`)
 
 ### info
