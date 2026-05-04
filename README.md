@@ -4,7 +4,7 @@ This tool is intended to provide a little convenience for creating digitally sig
 For that it is based on a couple of existing tools including:
 
 - [pyHanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
-- [typst](https://typst.app/) for the creation of the visual part of the signature
+- [Typst](https://typst.app/) generation of the visual part
 
 # Documentation
 
@@ -17,6 +17,33 @@ the signatures visual appearance couldn't be configured, or they completely inva
 signatures when drawing a new one.
 
 Additionally, most of them have been rather inconvenient to use.
+
+# Features
+
+<img src="./docs/assets/custom_sig_templates.png" alt="Description" width="40%" align="right">
+
+### Customizable Visual Signatures
+
+Define how signatures should look by using a flexible module system. You can create and host your own
+appearance templates, or download existing ones, to adapt the signing experience to your needs.
+<br><br>
+
+<img src="./docs/assets/field_selection.png" alt="Description" width="40%" align="left">
+<br>
+
+### Visual Field Selection
+
+Choose from existing signature fields through a visual interface and decide which one should be filled.
+<br><br><br><br>
+
+<img src="./docs/assets/custom_field_creation.png" alt="Description" width="40%" align="right">
+<br>
+
+### Interactive Signature Placement
+
+Create and position signature fields through an interactive view, specifying exactly where
+each signature should appear.
+<br><br><br>
 
 # How to use
 
