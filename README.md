@@ -3,7 +3,7 @@
 This tool is intended to provide a little convenience for creating digitally signed PDFs on Linux.
 For that it is based on a couple of existing tools including:
 
-- [pyhanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
+- [pyHanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
 - [typst](https://typst.app/) for the creation of the visual part of the signature
 
 # Documentation
@@ -20,7 +20,10 @@ Additionally, most of them have been rather inconvenient to use.
 
 # How to use
 
-To use `resignation` you have multiple options.
+Before using `resignation` you need to install either [typst](https://typst.app/) and [python](https://www.python.org/)
+or [nix](https://nixos.org/) and enable [nix flakes](https://nixos.wiki/wiki/flakes).
+
+After installing these dependencies you have multiple options.
 
 ## Nix Flakes
 
@@ -66,6 +69,7 @@ Once all dependencies are in place the script can be
 run locally as a python module:
 
 ```bash
+# go into the project root first
 python -m resignation.resignation --input some/local/test.pdf
 ```
 
