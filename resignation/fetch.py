@@ -38,6 +38,7 @@ def install_typst_stamp(url : str, relative = ".", refresh = False, offline = Fa
   dir_path = ""
   if 'dir' in query:
     dir_path = query['dir'][0]
+
   if not url_info.scheme:
     # url is local path -> use it directly
     path = resolve_path(relative, url)
@@ -77,24 +78,26 @@ def install_typst_stamp(url : str, relative = ".", refresh = False, offline = Fa
 
         ref = ''
         if 'ref' in query:
-          ref = f"origin/{query['ref'][0]}"
+          ref = query['ref'][0]
         else:
-          ref = f"origin/HEAD"
+          ref = "HEAD"
 
         # check if specified branch (ref) is known locally
-        rev_parse = subprocess.run(["git", "rev-parse", "--verify", ref], cwd=path, stdout=DEVNULL, stderr=DEVNULL, text=True)
+        rev_parse = subprocess.run(["git", "rev-parse", "--verify", f"origin/{ref}"], cwd=path, stdout=DEVNULL, stderr=DEVNULL, text=True)
         ref_available = rev_parse.returncode == 0
 
+        # if the branch is not available -> fetch by default (fail when offline)
+        # else only update on refresh
         if refresh or (not ref_available and not offline):
           try:
-            subprocess.run(["git", "fetch", "--depth=1", "origin", query['ref'][0]], cwd=path, check=True, stdout=DEVNULL, stderr=PIPE, text=True)
+            subprocess.run(["git", "fetch", "--depth=1", "origin", ref], cwd=path, check=True, stdout=DEVNULL, stderr=PIPE, text=True)
           except subprocess.CalledProcessError as e:
             print(f"Failed to fetch specified branch of the template repository.", file=sys.stderr)
-            print(f"This is likely caused by a typo in the branch name: '{query['ref'][0]}'", file=sys.stderr)
-            print(f"Git error:\n{e.stderr}", file=sys.stderr)
+            print(f"This is likely caused by a typo in the branch name: '{ref}'", file=sys.stderr)
+            print(f"\nGit error:\n{e.stderr}", file=sys.stderr)
             exit(1)
 
-        subprocess.run(["git", "reset", "--hard", ref], cwd=path, check=True, stdout=DEVNULL, text=True)
+        subprocess.run(["git", "reset", "--hard", f"origin/{ref}"], cwd=path, check=True, stdout=DEVNULL, text=True)
 
         path = path/dir_path
       else:
