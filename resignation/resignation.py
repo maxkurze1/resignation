@@ -201,6 +201,12 @@ from pyhanko.pdf_utils import layout
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
 from pyhanko.pdf_utils.crypt import StandardSecurityHandler, AuthStatus
 
+from . import pyhanko_encrypted_sig_fix
+# Work around a pyHanko bug that aborts signing of encrypted PDFs which
+# already contain a signature dict (e.g. Acrobat's /Perms /UR3 usage-rights
+# signature) with "ValueError: Invalid padding bytes". See module docstring.
+pyhanko_encrypted_sig_fix.apply()
+
 from .fetch import install_typst_stamp, resolve_path
 import uuid
 from pathlib import Path
