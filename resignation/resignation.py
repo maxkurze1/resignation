@@ -446,7 +446,7 @@ def _main():
 
     if sig_conf_d:
       cert_path = resolve_path(sig_conf_dir, sig_conf_d['certificate']) if 'certificate' in sig_conf_d else None
-      config_password = sig_conf_d['password'].encode() if 'password' in sig_conf_d else None
+      config_password = sig_conf_d['password'] if 'password' in sig_conf_d else None
       template_path = {"path": sig_conf_d['template'], "relative": sig_conf_dir} if 'template' in sig_conf_d else None
       config_params = sig_conf_d['param'] if 'param' in sig_conf_d else {}
 
@@ -484,8 +484,9 @@ def _main():
       except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         exit(1)
-    elif config_password:
+    elif config_password is not None:
       try_keyring = False
+      password = config_password
       try:
         cert_data = extract_data_from_pk12(cert_path, password.encode())
       except ValueError: # if config pass fails -> try keyring
