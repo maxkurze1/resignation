@@ -331,7 +331,9 @@ def _main():
         print("wrong password")
 
   page_choices = []
+  total_empty_fields = 0
   for i, page in enumerate(doc):
+    total_empty_fields += len(get_empty_page_sig_fields(page))
     page_choices.append(
       Choice(
         value=i,
@@ -348,20 +350,28 @@ def _main():
     new_field = args.new_field
   # skip loop in case field is explicitly given on CLI
   while True and (args.new_field is None):
+    hints = []
+    if total_empty_fields > 0:
+      hints.append("[v] visual selection")
+    hints.append("[n] new field")
+    hints.append("[↑/j/↓/k] select")
+
     prompt = inquirer.select(
-      message="On which page do you want to sign?\n  (empty fields / total fields)\n (press 'v' for a visual selection)\n (press 'n' to add a new field):",
+      message="On which page do you want to sign?",
       choices=page_choices,
       default=None,
+      long_instruction="(empty / total)\n" + "   ".join(hints),
       vi_mode=True,
     )
 
-    @prompt.register_kb("v")
-    def _handle_preview(event):
-      nonlocal field_idx
-      idx = show_annotated_page(doc, prompt.result_value)
-      if idx is not None:
-        field_idx = idx
-        event.app.exit()
+    if total_empty_fields > 0:
+      @prompt.register_kb("v")
+      def _handle_preview(event):
+        nonlocal field_idx
+        idx = show_annotated_page(doc, prompt.result_value)
+        if idx is not None:
+          field_idx = idx
+          event.app.exit()
 
     @prompt.register_kb("n")
     def _handle_new_field(event):
@@ -387,10 +397,11 @@ def _main():
         page_idx = _page_idx
     else:
       prompt = inquirer.number(
-        message=f"Select which field to sign [{min_idx} - {max_idx}]: \n (press 'v' for a visual selection)\n (press 'n' to add a new field):",
+        message=f"Select which field to sign [{min_idx} - {max_idx}]:",
         min_allowed=min_idx,
         max_allowed=max_idx,
         validate=EmptyInputValidator(),
+        long_instruction="[v] visual selection   [n] new field   [esc] back",
         vi_mode=True,
       )
 
