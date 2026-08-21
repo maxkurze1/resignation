@@ -127,6 +127,25 @@ def merge_with_precedence(*dicts):
     result.update(d)
   return result
 
+def resolve_output_name(template, file_in):
+  """Resolve an output name template against the input path.
+
+  Supported placeholders (derived from the input file):
+    {input} full input path        {dir}  input directory
+    {name}  filename without ext    {ext}  extension (incl. leading dot)
+  """
+  p = Path(file_in)
+  substitutions = {
+    'input': str(p),
+    'dir':   str(p.parent),
+    'name':  p.stem,
+    'ext':   p.suffix,
+  }
+  result = template
+  for key, value in substitutions.items():
+    result = result.replace('{' + key + '}', value)
+  return result
+
 def resolve_param(key, params, seen=None):
   if seen is None:
     seen = set()
@@ -413,6 +432,7 @@ def _main():
   template_path = None
   config_password = None
   config_params = {}
+  output_template = None
 
   if args.config:
     sig_conf = Path(args.config)
@@ -455,6 +475,7 @@ def _main():
       config_password = sig_conf_d['password'] if 'password' in sig_conf_d else None
       template_path = {"path": sig_conf_d['template'], "relative": sig_conf_dir} if 'template' in sig_conf_d else None
       config_params = sig_conf_d['param'] if 'param' in sig_conf_d else {}
+      output_template = sig_conf_d['output'] if 'output' in sig_conf_d else None
 
   # if value are given on the command line as well, then they have priority
   if args.template:
@@ -596,10 +617,13 @@ def _main():
     ).sign_pdf(w, output=tmp_file)
 
   if args.output is not None:
-    file_out = args.output
+    # replace {name}/{ext}/{dir}/{input} placeholders
+    file_out = resolve_output_name(args.output, file_in)
   else:
+    # use config provided output name; otherwise fall back to input path
+    default_out = resolve_output_name(output_template, file_in) if output_template else file_in
     file_out = inquirer.filepath(
-      default=file_in,
+      default=default_out,
       message="Enter path to store output PDF:",
     ).execute()
 

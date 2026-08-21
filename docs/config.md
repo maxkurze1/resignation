@@ -43,6 +43,10 @@ password = "you_dont_have_to_store_it_here"
 # template = "github:maxkurze1/resignation?ref=dev&dir=templates/logo"
 template = "github:maxkurze1/resignation?dir=templates/logo"
 
+# Default name of the saved document. Placeholders {name}/{ext}/{dir}/{input}
+# refer to the input file, so this is an easy way to add a suffix or prefix.
+output = "{dir}/{name}-signed{ext}"
+
 [Sig1.param]
 name = '[Max Kurze]'
 logo = 'image("./company.svg")'
@@ -121,6 +125,38 @@ To avoid potential password theft, you can leave this option unset — you will 
 
 Specifies the template file just like [`--template`](./cli.md#cli-template), except
 that the given path is resolved relative to the configuration file.
+
+### `output` {#output}
+
+Specifies a default name (or path) for the saved document. This value is used as
+the pre-filled default of the output prompt, so it can still be edited before saving.
+If unset, the output defaults to the input file path (as before).
+
+The value is a template that may refer to the input file through the following
+placeholders:
+
+| Placeholder | Meaning                            |
+| ----------- | ---------------------------------- |
+| `{input}`   | full input path                    |
+| `{dir}`     | input directory                    |
+| `{name}`    | input file name without extension  |
+| `{ext}`     | extension (including leading dot)  |
+
+This makes it easy to add a prefix or a suffix to the input name:
+
+```toml
+# suffix, e.g. "document.pdf" -> "document-signed.pdf"
+output = "{dir}/{name}-signed{ext}"
+
+# prefix, e.g. "document.pdf" -> "signed-document.pdf"
+output = "{dir}/signed-{name}{ext}"
+
+# or a fixed default name / location
+output = "~/signed/{name}{ext}"
+```
+
+The corresponding command-line option is [`--output`](./cli.md#cli-output), which
+takes precedence and is used directly (without prompting).
 
 ### `param` {#param}
 

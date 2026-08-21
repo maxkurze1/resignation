@@ -22,11 +22,17 @@ Example:
 ### `-o` / `--output` {#cli-output}
 
 Specifies the path to the output PDF.
-If omitted, the path is prompted.
+If omitted, the path is prompted (using the config's [`output`](./config.md#output)
+template as the default if present).
+
+The value may use the same `{name}`/`{ext}`/`{dir}`/`{input}` placeholders as the
+config's [`output`](./config.md#output) option, which refer to the input file.
 
 Example:
 
-`--output "./put/it/here/document-sined.pdf"`
+`--output "./put/it/here/document-signed.pdf"`
+
+`--output "{dir}/{name}-signed{ext}"`
 
 ### `--new-field` {#cli-new-field}
 
