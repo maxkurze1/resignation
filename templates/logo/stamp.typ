@@ -1,5 +1,40 @@
 #import "@preview/one-liner:0.2.0": fit-to-width
 
+// Fit `body` into the surrounding box, maxing the font size while respecting
+// the width+height limitation (uses text wrapping)
+#let fit-to-box(
+  body,
+  min-size: 1pt,
+  max-size: 720pt,
+  tolerance: 0.25pt,
+  align: left + horizon,
+) = layout(bounds => {
+  let (width: w, height: h) = bounds
+
+  // Does `body` fit the box when rendered at `size`, wrapped to width `w`?
+  let fits(size) = {
+    // Capping width to force natural line wrapping
+    // When the text fits, `.width` reports the true
+    // widest-line width; a line (e.g. an unbreakable word) too wide to wrap
+    // makes `.width` clamp to exactly `w`, so `< w` rejects that overflow.
+    let m = measure(text(size: size, body), width: w)
+    m.height <= h and m.width < w
+  }
+
+  // Binary search the largest feasible size. `fits` is monotonic in `size`
+  // (both height and widest-line width grow with size), so this converges.
+  let lo = min-size
+  let hi = max-size
+  while hi - lo > tolerance {
+    let mid = (lo + hi) / 2
+    if fits(mid) { lo = mid } else { hi = mid }
+  }
+
+  set text(size: lo)
+  set par(justify: false)
+  std.align(align, block(width: w, body))
+})
+
 #let overlay_margin = 1pt
 #let overlay(img, color) = layout(bounds => {
   let size = measure(img, ..bounds)
@@ -41,7 +76,7 @@
         rows: (1fr),
         gutter: 3pt,
         align: (center + horizon, left + horizon),
-        fit-to-width(max-text-size: height - 4pt, text(weight:"bold", left_side)),
+        fit-to-box(text(weight:"bold", left_side), max-size: height - 4pt, align: center + horizon),
         /* the logo is centered behind the info text */
         place(center + horizon, if logo_opacity == 100% { logo } else { overlay(logo, white.transparentize(logo_opacity)) }) +
         fit-to-width(min-text-size:1pt, text(font: "Open Sans", info))

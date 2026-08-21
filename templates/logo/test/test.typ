@@ -7,7 +7,8 @@
     (115pt, 19pt),
     (220pt, 40pt),
     (300pt, 20pt),
-    ( 60pt, 20pt)
+    ( 60pt, 20pt),
+    ( 50pt, 40pt)
   ) [
   #stamp(
     inset: 1pt,
