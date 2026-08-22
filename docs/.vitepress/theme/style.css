@@ -1,19 +1,7 @@
 /* this resets the defaults */
 @import 'tailwindcss';
 
-
-
-/* @layer theme, base, components, utilities; */
-
-/* @import "tailwindcss/theme.css" layer(theme); */
-
-/* here is the explicit reset */
-/* @import "tailwindcss/preflight.css" layer(base); */
-
-/* @import "tailwindcss/utilities.css" layer(utilities); */
-
-
-.vp-doc h1 {
+.VPHome .vp-doc h1 {
   margin: 64px 0 16px;
 }
 

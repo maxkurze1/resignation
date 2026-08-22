@@ -28,6 +28,12 @@ For that it is based on a couple of existing tools including:
 - [pyHanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
 - [Typst](https://typst.app/) generation of the visual part
 
+::: tip Looking for all the details?
+The [**Reference**](./cli.md) documentation describes every available option:
+the [command line interface](./cli.md), the [config file](./config.md) and the
+[stamp templates](./templates.md).
+:::
+
 # Why
 
 Most existing tools (at least the dozen I tried) were lacking in one or the other regard. Either
@@ -140,3 +146,12 @@ run locally as a python module:
 # go into the project root first
 python -m resignation.resignation --input some/local/test.pdf
 ```
+
+# Where to Go From Here
+
+Once you have `resignation` up and running, you can find all the advanced
+configuration and customization options in the reference documentation:
+
+- [**Command Line Interface**](./cli.md) — all command line options and environment variables
+- [**Config Options**](./config.md) — how to move those options into a config file
+- [**Templates**](./templates.md) — how to write and use your own visual stamp templates
