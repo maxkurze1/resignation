@@ -23,7 +23,6 @@
       setuptools-scm
       pyhanko
       pymupdf
-      pillow
       inquirerpy
       pyqt6
       keyring
