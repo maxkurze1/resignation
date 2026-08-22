@@ -74,7 +74,7 @@
       grid(
         columns: (1fr, 1fr),
         rows: (1fr),
-        gutter: 3pt,
+        gutter: 5pt,
         align: (center + horizon, left + horizon),
         fit-to-box(text(weight:"bold", left_side), max-size: height - 4pt, align: center + horizon),
         /* the logo is centered behind the info text */
