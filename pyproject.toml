@@ -21,7 +21,6 @@ license = { text = "GPLv3" }
 dependencies = [
   "pyhanko>=0.25.3",
   "pymupdf>=1.25.2",
-  "pillow>=11.2.1",
   "inquirerpy>=0.3.4",
   "pyqt6>=6.9.0",
   "keyring>=25.6.0"

@@ -13,7 +13,7 @@ from InquirerPy.utils import color_print
 from InquirerPy.validator import PathValidator
 from InquirerPy.validator import EmptyInputValidator
 from InquirerPy.base.control import Choice
-from .selection_prompt import selection_prompt, field_selection_prompt
+from .selection_prompt import selection_prompt
 
 def rotate_field(field, width, height, rotation):
   if rotation == 0:
@@ -44,46 +44,31 @@ def rotate_field(field, width, height, rotation):
       'width':  field['height'],
       'height': field['width'],
     }
-def scale_field(field, xscale, yscale):
-  return {
-    'x':      field['x']      * xscale,
-    'y':      field['y']      * yscale,
-    'width':  field['width']  * xscale,
-    'height': field['height'] * yscale,
-  }
-
 def get_page_sig_fields(page):
   return list(filter(lambda w: w.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE, page.widgets()))
 def get_empty_page_sig_fields(page):
   return list(filter(lambda w: not w.is_signed, get_page_sig_fields(page)))
 
-def show_annotated_page(doc, pg_idx):
-  # count widgets of prior pages
-  counter = 0
-  for i in range(pg_idx):
-    counter += len(get_empty_page_sig_fields(doc[i]))
+def visual_selection(doc, pg_idx):
+  """Open the visual prompt on ``pg_idx`` and return the user's ``Selection``.
 
-  page = doc[pg_idx]
+  Collects the empty signature fields of *every* page (keeping the global
+  field numbering that :func:`page_field_of_idx` resolves) and hands them to
+  the prompt in each field's own page points (the ``page.rect`` space).
+  Returns ``None`` if the user cancelled.
+  """
+  counter = 0
   fields = []
-  for widget in page.widgets():
-    if widget.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE:
-      # print(counter, widget.field_name, ":", widget.is_signed)
-      if not widget.is_signed:
-        mat = fitz.Matrix()
-        mat.invert(page.transformation_matrix)
-        rect = widget.rect * mat
-        fields.append((counter, {'x': rect.x0, 'y': rect.y0, 'width': rect.width, 'height': rect.height}))
-        # page.draw_rect(widget.rect, color=[1.0, 0.0, 0.0], fill=[1.0,1.0,1.0], fill_opacity=0.8, overlay=True)
-        # page.insert_textbox(widget.rect, f"{counter}", overlay=True, color=[1.0, 0.0, 0.0], align=fitz.TEXT_ALIGN_CENTER, rotate=page.rotation)
-        # print("w/h", widget.rect.width, widget.rect.height)
-        counter += 1
-  page_img = page.get_pixmap(dpi=400).pil_image()
-  # page_img.show()
-  xscale, yscale = page_img.width / page.rect.width,  page_img.height / page.rect.height
-  fields = list(map(lambda f:
-    (f[0], scale_field(rotate_field(f[1], page.rect.width, page.rect.height, page.rotation), xscale, yscale)),
-  fields))
-  return field_selection_prompt(page_img, fields)
+  for i, page in enumerate(doc):
+    for field in get_empty_page_sig_fields(page):
+      # widget.rect is in the page's *unrotated* space; the prompt (and MuPDF's
+      # clip / page.rect) work in the rotation-applied display space, so map it
+      # across.  rotation_matrix is the identity for un-rotated pages.
+      rect = fitz.Rect(field.rect * page.rotation_matrix).normalize()
+      fields.append((counter, i, {'x': rect.x0, 'y': rect.y0,
+                                  'width': rect.width, 'height': rect.height}))
+      counter += 1
+  return selection_prompt(doc, fields, page=pg_idx)
 
 def page_field_of_idx(doc, idx):
   # count widgets of prior pages
@@ -93,17 +78,6 @@ def page_field_of_idx(doc, idx):
       idx -= len(sig_fields)
       continue
     return page, sig_fields[idx]
-
-def create_new_field(doc, pg_idx):
-  page = doc[pg_idx]
-  page_img = page.get_pixmap(dpi=400).pil_image()
-  coords_img = selection_prompt(page_img)
-  if not coords_img:
-    return None
-  xscale, yscale = page.rect.width / page_img.width, page.rect.height / page_img.height
-
-  coords_pg = scale_field(coords_img, xscale, yscale)
-  return coords_pg
 
 
 
@@ -331,9 +305,7 @@ def _main():
         print("wrong password")
 
   page_choices = []
-  total_empty_fields = 0
   for i, page in enumerate(doc):
-    total_empty_fields += len(get_empty_page_sig_fields(page))
     page_choices.append(
       Choice(
         value=i,
@@ -348,13 +320,22 @@ def _main():
   if args.new_field is not None:
     page_idx = args.new_field['page']
     new_field = args.new_field
+
+  def apply_choice(choice):
+    # Map a Selection from the visual prompt onto new_field / field_idx.
+    nonlocal new_field, page_idx, field_idx
+    if choice is None:
+      return False
+    if choice.area is not None:
+      new_field = choice.area
+      page_idx = choice.page
+    else:
+      field_idx = choice.field
+    return True
+
   # skip loop in case field is explicitly given on CLI
   while True and (args.new_field is None):
-    hints = []
-    if total_empty_fields > 0:
-      hints.append("[v] visual selection")
-    hints.append("[n] new field")
-    hints.append("[↑/j/↓/k] select")
+    hints = ["[v] visual selection", "[↑/j/↓/k] select"]
 
     prompt = inquirer.select(
       message="On which page do you want to sign?",
@@ -364,22 +345,10 @@ def _main():
       vi_mode=True,
     )
 
-    if total_empty_fields > 0:
-      @prompt.register_kb("v")
-      def _handle_preview(event):
-        nonlocal field_idx
-        idx = show_annotated_page(doc, prompt.result_value)
-        if idx is not None:
-          field_idx = idx
-          event.app.exit()
-
-    @prompt.register_kb("n")
-    def _handle_new_field(event):
-      nonlocal new_field, page_idx
-      new_field = create_new_field(doc, prompt.result_value)
-      if new_field is not None:
-        page_idx = prompt.result_value
-        prompt.application.exit()
+    @prompt.register_kb("v")
+    def _handle_visual(event):
+      if apply_choice(visual_selection(doc, prompt.result_value)):
+        event.app.exit()
 
     _page_idx = prompt.execute()
     if new_field is not None or field_idx is not None:
@@ -392,32 +361,24 @@ def _main():
 
     field_idx_opt = None
     if max_idx < min_idx:
-      if inquirer.confirm(message="No field available, create new one?", default=True).execute():
-        new_field = create_new_field(doc, _page_idx)
-        page_idx = _page_idx
+      if inquirer.confirm(message="No field on this page, open visual selection?", default=True).execute():
+        if apply_choice(visual_selection(doc, _page_idx)):
+          break
+      continue
     else:
       prompt = inquirer.number(
         message=f"Select which field to sign [{min_idx} - {max_idx}]:",
         min_allowed=min_idx,
         max_allowed=max_idx,
         validate=EmptyInputValidator(),
-        long_instruction="[v] visual selection   [n] new field   [esc] back",
+        long_instruction="[v] visual selection   [esc] back",
         vi_mode=True,
       )
 
       @prompt.register_kb("v")
-      def _handle_preview(event):
-        idx = show_annotated_page(doc, _page_idx)
-        if idx is not None:
-          event.app.exit(result=idx)
-
-      @prompt.register_kb("n")
-      def _handle_new_field(event):
-        nonlocal new_field, page_idx
-        new_field = create_new_field(doc, _page_idx)
-        if new_field:
-          page_idx = _page_idx
-          prompt.application.exit()
+      def _handle_visual(event):
+        if apply_choice(visual_selection(doc, _page_idx)):
+          event.app.exit()
 
       @prompt.register_kb("escape")
       def _handle_exit(event):
@@ -426,7 +387,7 @@ def _main():
       field_idx_opt = prompt.execute()
     # in case escape was pressed execute returns None
     # -> loop back to page selection
-    if new_field:
+    if new_field is not None or field_idx is not None:
       break
     if field_idx_opt is not None:
       field_idx = int(field_idx_opt)
