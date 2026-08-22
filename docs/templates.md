@@ -4,7 +4,7 @@ outline: deep
 
 # Templates
 
-The generation of arbitrary **visual** signatures appearances (called _stamps_) is provided through
+The generation of arbitrary **visual** signature appearances (called _stamps_) is provided through
 a [Typst](https://typst.app/)-based plugin system.
 
 ## Parameters

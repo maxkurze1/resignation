@@ -18,7 +18,7 @@ Example
 
 ### inset
 
-Padding between the signatures box and its content.
+Padding between the signature's box and its content.
 (default: `2pt`)
 
 ### left
@@ -56,7 +56,7 @@ Opacity of the background logo.
 > this opacity is realized by overlaying a partially-transparent
 > white box over the image itself. This may look a bit weird in
 > certain editors. Thus, it is recommended to use an image with
-> built-in transparency and disable this options by setting it to
+> built-in transparency and disable this option by setting it to
 > `100%`.
 
 (default: `30%`)

@@ -4,7 +4,7 @@ This tool is intended to provide a little convenience for creating digitally sig
 For that it is based on a couple of existing tools including:
 
 - [pyHanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
-- [Typst](https://typst.app/) generation of the visual part
+- [Typst](https://typst.app/) for the generation of the visual part
 
 # Documentation
 
@@ -13,14 +13,14 @@ The documentation of this tool can be found [here](https://maxkurze1.github.io/r
 # Why
 
 Most existing tools (at least the dozen I tried) were lacking in one or the other regard. Either
-the signatures visual appearance couldn't be configured, or they completely invalidated all existing
+the signature's visual appearance couldn't be configured, or they completely invalidated all existing
 signatures when drawing a new one.
 
 Additionally, most of them have been rather inconvenient to use.
 
 # Features
 
-<img src="./docs/assets/custom_sig_templates.png" alt="Description" width="40%" align="right">
+<img src="./docs/assets/custom_sig_templates.png" alt="Example showing Customizable Visual Signatures" width="40%" align="right">
 
 ### Customizable Visual Signatures
 
@@ -28,7 +28,7 @@ Define how signatures should look by using a flexible module system. You can cre
 appearance templates, or download existing ones, to adapt the signing experience to your needs.
 <br><br>
 
-<img src="./docs/assets/field_selection.png" alt="Description" width="40%" align="left">
+<img src="./docs/assets/field_selection.png" alt="Example showing Visual Field Selection" width="40%" align="left">
 <br>
 
 ### Visual Field Selection
@@ -36,7 +36,7 @@ appearance templates, or download existing ones, to adapt the signing experience
 Choose from existing signature fields through a visual interface and decide which one should be filled.
 <br><br><br><br>
 
-<img src="./docs/assets/custom_field_creation.png" alt="Description" width="40%" align="right">
+<img src="./docs/assets/custom_field_creation.png" alt="Example showing Interactive Signature Placement" width="40%" align="right">
 <br>
 
 ### Interactive Signature Placement

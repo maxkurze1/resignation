@@ -84,10 +84,10 @@ Each signature type is referenced by its name (see [`default`](#default) and [`-
 ### `default` {#default}
 
 Specifies the name of the signature type which should be used with
-this config if no name is given explicitly using [`--sig`](./cli.md#cli-sig).
+this config in case no name is given explicitly using [`--sig`](./cli.md#cli-sig).
 
 If neither `default` nor `--sig` is present, resignation will show a
-selection prompt of all available signature types in config file.
+selection prompt of all available signature types of the config file.
 
 Example:
 
@@ -110,7 +110,7 @@ Specifies the password to decrypt the certificate file. (see [`--password`](./cl
 
 ::: warning
 This option is deprecated in favor of the new behavior which saves the
-password in the system's keyring. It is only kept for people which do
+password in the system's keyring. It is only kept for people who do
 not have/use a keyring service on their operating system.
 :::
 
@@ -174,7 +174,7 @@ This working directory is either the config or the `$PWD` of the `resignation` i
 on whether the `template` was specified through the config or as CLI argument.
 
 Be aware: When setting the template in the config and additionally giving `--params` via the CLI, then
-these CLI parameters should use (quite counter-intuitive) links relative to the config.
+these CLI parameters should use (quite counter-intuitively) paths relative to the config.
 
-For more technical infos on this limitation see this [issue](https://github.com/maxkurze1/resignation/issues/3)
+For more technical information on this limitation see this [issue](https://github.com/maxkurze1/resignation/issues/3)
 :::

@@ -145,7 +145,7 @@ Specifies the path to the signature config.
 If not present, the config is searched at `$XDG_CACHE_HOME/resignation/config.toml` and
 `~/.config/resignation/config.toml`.
 
-This configuration file may provide default for various command line option.
+This configuration file may provide defaults for various command line options.
 For more information refer to [config](./config.md).
 
 Example:

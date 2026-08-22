@@ -26,7 +26,7 @@ This tool is intended to provide a little convenience for creating digitally sig
 For that it is based on a couple of existing tools including:
 
 - [pyHanko](https://github.com/MatthiasValvekens/pyHanko) for the creation of the digital/cryptographic part of the signature
-- [Typst](https://typst.app/) generation of the visual part
+- [Typst](https://typst.app/) for the generation of the visual part
 
 ::: tip Looking for all the details?
 The [**Reference**](./cli.md) documentation describes every available option:
@@ -37,7 +37,7 @@ the [command line interface](./cli.md), the [config file](./config.md) and the
 # Why
 
 Most existing tools (at least the dozen I tried) were lacking in one or the other regard. Either
-the signatures visual appearance couldn't be configured, or they completely invalidated all existing
+the signature's visual appearance couldn't be configured, or they completely invalidated all existing
 signatures when drawing the visuals for a new one.
 
 Additionally, most of them have been rather inconvenient to use.
