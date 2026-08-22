@@ -333,9 +333,13 @@ def _main():
       field_idx = choice.field
     return True
 
+  def _handle_quit(event):
+    # exit the whole application (caught by main() -> exit(0))
+    event.app.exit(exception=KeyboardInterrupt)
+
   # skip loop in case field is explicitly given on CLI
   while True and (args.new_field is None):
-    hints = ["[v] visual selection", "[↑/j/↓/k] select"]
+    hints = ["[v] visual selection", "[↑/j/↓/k] select", "[q] quit"]
 
     prompt = inquirer.select(
       message="On which page do you want to sign?",
@@ -349,6 +353,8 @@ def _main():
     def _handle_visual(event):
       if apply_choice(visual_selection(doc, prompt.result_value)):
         event.app.exit()
+
+    prompt.register_kb("q")(_handle_quit)
 
     _page_idx = prompt.execute()
     if new_field is not None or field_idx is not None:
@@ -371,7 +377,7 @@ def _main():
         min_allowed=min_idx,
         max_allowed=max_idx,
         validate=EmptyInputValidator(),
-        long_instruction="[v] visual selection   [esc] back",
+        long_instruction="[v] visual selection   [esc] back   [q] quit",
         vi_mode=True,
       )
 
@@ -383,6 +389,8 @@ def _main():
       @prompt.register_kb("escape")
       def _handle_exit(event):
         prompt.application.exit()
+
+      prompt.register_kb("q")(_handle_quit)
 
       field_idx_opt = prompt.execute()
     # in case escape was pressed execute returns None
