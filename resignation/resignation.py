@@ -561,16 +561,18 @@ def _main():
       auth_result = w.encrypt(pdf_password)
 
     if new_field:
-      new_field = rotate_field(new_field, page.rect.width, page.rect.height, page.rotation)
+      disp = fitz.Rect(
+        new_field['x'],
+        new_field['y'],
+        new_field['x'] + new_field['width'],
+        new_field['y'] + new_field['height'],
+      )
+      box = (disp * ~page.transformation_matrix).normalize()
       new_field_name = str(uuid.uuid4())
       fields.append_signature_field(
         w, sig_field_spec=fields.SigFieldSpec(
           new_field_name, on_page=page_idx,
-          box=(
-            new_field['x'],
-            new_field['y'],
-            new_field['x'] + new_field['width'],
-            new_field['y'] + new_field['height'])
+          box=(box.x0, box.y0, box.x1, box.y1)
         )
       )
 
