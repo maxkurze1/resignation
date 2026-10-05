@@ -13,6 +13,7 @@ from InquirerPy.utils import color_print
 from InquirerPy.validator import PathValidator
 from InquirerPy.validator import EmptyInputValidator
 from InquirerPy.base.control import Choice
+from InquirerPy.containers.instruction import InstructionWindow
 from .selection_prompt import selection_prompt
 
 def rotate_field(field, width, height, rotation):
@@ -339,7 +340,7 @@ def _main():
 
   # skip loop in case field is explicitly given on CLI
   while True and (args.new_field is None):
-    hints = ["[v] visual selection", "[↑/j/↓/k] select", "[q] quit"]
+    hints = ["[v] visual selection", "[↑/k/↓/j] select", "[q] quit"]
 
     prompt = inquirer.select(
       message="On which page do you want to sign?",
@@ -372,14 +373,36 @@ def _main():
           break
       continue
     else:
+      field_names = [
+        f.field_name for f in get_empty_page_sig_fields(doc[_page_idx])
+      ]
+      hints = "[v] visual selection   [↑/k/↓/j] change index   [esc] back   [q] quit"
+
+      def field_hint(text):
+        try:
+          name = field_names[int(text) - min_idx]
+        except (ValueError, IndexError):
+          name = "-"
+        return f"field: {name}\n{hints}"
+
       prompt = inquirer.number(
         message=f"Select which field to sign [{min_idx} - {max_idx}]:",
         min_allowed=min_idx,
         max_allowed=max_idx,
+        default=min_idx,
         validate=EmptyInputValidator(),
-        long_instruction="[v] visual selection   [esc] back   [q] quit",
+        long_instruction=field_hint(str(min_idx)),
         vi_mode=True,
       )
+
+      # show the full name of the field at the currently entered index
+      instruction = next(
+        c for c in prompt.application.layout.walk()
+        if isinstance(c, InstructionWindow)
+      )
+      def _update_field_hint(buffer):
+        instruction._message = field_hint(buffer.text)
+      prompt._whole_buffer.on_text_changed += _update_field_hint
 
       @prompt.register_kb("v")
       def _handle_visual(event):
